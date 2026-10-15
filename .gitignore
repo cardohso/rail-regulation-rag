@@ -1,0 +1,28 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+build/
+dist/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local data artefacts (raw downloads and vector indexes are rebuilt by scripts)
+data/raw/
+data/index/
+chroma/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
