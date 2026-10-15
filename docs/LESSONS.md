@@ -24,3 +24,17 @@ Things that went wrong while building this project and how they were fixed.
 - Added a coverage check that compares the parsed word count with the body word count of each source (minus the TOC, footnotes and cover page). It now reads ~100% for the directive and 103–107% for the TSIs; the overshoot comes from table separators and heading dashes being counted as words.
 
 **Takeaway:** tests built on a fixture you invented only prove the code matches your assumptions. Measure the output against the real input before trusting it.
+
+## 3. A similarity threshold alone cannot decide when to refuse
+
+**Observation:** I probed the local index (bge-small, cosine) with 5 in-scope and 3 out-of-scope questions before designing the refusal path.
+
+- In-scope questions had top-1 scores of 0.73–0.84.
+- Unrelated questions ("capital of France", "ticket price Lisbon–Porto") scored 0.50–0.54.
+- "What are the GDPR rules for passenger data?" scored **0.715**. That question is rail-adjacent, but the answer isn't in the corpus, and the score falls inside the in-scope range.
+
+**Decision:** use two gates.
+1. A cheap cosine floor rejects clearly unrelated questions without calling an LLM.
+2. An LLM relevance grade on the retrieved passages handles near-domain questions.
+
+The golden set includes near-domain unanswerable questions, to test the second gate.
