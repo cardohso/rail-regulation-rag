@@ -34,6 +34,7 @@ def create_app(pipeline: Pipeline | None = None) -> FastAPI:
     async def lifespan(app: FastAPI):
         app.state.pipeline = pipeline or Pipeline.from_settings(get_settings())
         yield
+        app.state.pipeline.tracer.flush()  # send buffered traces before shutdown
 
     app = FastAPI(title="rail-regulation-rag", version=__version__, lifespan=lifespan)
 

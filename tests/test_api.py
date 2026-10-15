@@ -36,6 +36,7 @@ def test_health_reports_index_and_models():
     assert r.json() | {"version": "x"} == {
         "status": "ok", "version": "x", "passages": 3, "vector_store": "qdrant",
         "generator": "fake:scripted",
+        "tracing": False,
     }  # fmt: skip
 
 

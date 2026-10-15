@@ -16,6 +16,7 @@ from rail_rag import prompts
 from rail_rag.citations import renumber
 from rail_rag.embeddings import Embedder
 from rail_rag.providers import LLM, parse_json
+from rail_rag.tracing import NoopTracer, TracedLLM, Tracer, summarize
 from rail_rag.vectorstore import SearchHit, VectorStore
 
 RefusalReason = Literal[
@@ -41,8 +42,26 @@ class RAGState(TypedDict, total=False):
     refusal_reason: RefusalReason | None
 
 
-def build_graph(llm: LLM, embedder: Embedder, store: VectorStore, cfg: GraphConfig | None = None):
+# Langfuse observation type for each node, so the trace view shows what each step is.
+NODE_TYPES = {
+    "rewrite": "chain",
+    "retrieve": "retriever",
+    "grade": "evaluator",
+    "generate": "chain",
+    "refuse": "guardrail",
+}
+
+
+def build_graph(
+    llm: LLM,
+    embedder: Embedder,
+    store: VectorStore,
+    cfg: GraphConfig | None = None,
+    tracer: Tracer | None = None,
+):
     cfg = cfg or GraphConfig()
+    tracer = tracer or NoopTracer()
+    llm = TracedLLM(llm, tracer) if tracer.enabled else llm
 
     def rewrite(state: RAGState) -> RAGState:
         query = llm.complete(prompts.REWRITE, state["question"]).strip().splitlines()
@@ -88,12 +107,24 @@ def build_graph(llm: LLM, embedder: Embedder, store: VectorStore, cfg: GraphConf
     def after(state: RAGState) -> str:
         return "refuse" if state.get("refused") else "continue"
 
+    def traced(name, fn):
+        def node(state: RAGState) -> RAGState:
+            with tracer.observe(name, as_type=NODE_TYPES[name], input=summarize(state)) as obs:
+                update = fn(state)
+                obs.update(output=summarize(update))
+                return update
+
+        return node
+
     g = StateGraph(RAGState)
-    g.add_node("rewrite", rewrite)
-    g.add_node("retrieve", retrieve)
-    g.add_node("grade", grade)
-    g.add_node("generate", generate)
-    g.add_node("refuse", refuse)
+    for name, fn in [
+        ("rewrite", rewrite),
+        ("retrieve", retrieve),
+        ("grade", grade),
+        ("generate", generate),
+        ("refuse", refuse),
+    ]:
+        g.add_node(name, traced(name, fn))
     g.add_edge(START, "rewrite")
     g.add_edge("rewrite", "retrieve")
     g.add_edge("retrieve", "grade")

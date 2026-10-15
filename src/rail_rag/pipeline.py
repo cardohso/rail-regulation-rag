@@ -10,6 +10,7 @@ from rail_rag.config import Settings
 from rail_rag.embeddings import Embedder, SentenceTransformerEmbedder
 from rail_rag.graph import GraphConfig, build_graph
 from rail_rag.providers import LLM, make_llm
+from rail_rag.tracing import NoopTracer, Tracer, make_tracer
 from rail_rag.vectorstore import SearchHit, VectorStore, make_store
 
 
@@ -32,20 +33,37 @@ class Pipeline:
         store: VectorStore,
         cfg: GraphConfig | None = None,
         store_name: str = "custom",
+        tracer: Tracer | None = None,
     ):
         self.llm, self.store, self.store_name = llm, store, store_name
-        self.graph = build_graph(llm, embedder, store, cfg)
+        self.tracer = tracer or NoopTracer()
+        self.graph = build_graph(llm, embedder, store, cfg, self.tracer)
 
     @classmethod
     def from_settings(cls, s: Settings) -> Pipeline:
         llm = make_llm(s.generator_provider, s.api_key(s.generator_provider), s.generator_model)
         cfg = GraphConfig(k=s.top_k, min_score=s.min_score)
         embedder = SentenceTransformerEmbedder(s.embedding_model)
-        return cls(llm, embedder, make_store(s), cfg, store_name=s.vector_store)
+        return cls(
+            llm, embedder, make_store(s), cfg, store_name=s.vector_store, tracer=make_tracer(s)
+        )
 
     def ask(self, question: str, trace_id: str | None = None) -> AskResult:
-        trace_id = trace_id or uuid.uuid4().hex
-        state = self.graph.invoke({"question": question})
+        trace_id = trace_id or uuid.uuid4().hex  # 32 hex chars: a valid Langfuse/W3C trace id
+        meta = {"generator": self.llm.name, "vector_store": self.store_name}
+        with self.tracer.observe(
+            "rag-ask", as_type="agent", input={"question": question}, metadata=meta,
+            trace_id=trace_id,
+        ) as root:  # fmt: skip
+            state = self.graph.invoke({"question": question})
+            root.update(
+                output={
+                    "answer": state["answer"],
+                    "refused": bool(state.get("refused")),
+                    "refusal_reason": state.get("refusal_reason"),
+                    "citations": [h.passage.id for h in state.get("cited", [])],
+                }
+            )
         return AskResult(
             answer=state["answer"],
             refused=bool(state.get("refused")),
@@ -61,4 +79,5 @@ class Pipeline:
             "passages": self.store.count(),
             "vector_store": self.store_name,
             "generator": self.llm.name,
+            "tracing": self.tracer.enabled,
         }

@@ -33,6 +33,12 @@ class Settings(BaseSettings):
     top_k: int = 8
     min_score: float = 0.60
 
+    # Tracing (optional): Langfuse Cloud Hobby tier
+    langfuse_public_key: SecretStr = SecretStr("")
+    langfuse_secret_key: SecretStr = SecretStr("")
+    langfuse_host: str = "https://cloud.langfuse.com"
+    langfuse_environment: str = "local"
+
     def api_key(self, provider: str) -> str:
         secret = getattr(self, f"{provider}_api_key", None)
         return secret.get_secret_value() if secret else ""
