@@ -1,0 +1,46 @@
+# Corpus manifest. `celex` is the consolidated version that was ingested.
+# Downloaded from the Publications Office Cellar API (machine-access route for EUR-Lex content).
+# See data/SOURCES.md for licence and reuse terms.
+documents:
+  - id: iop-directive
+    short: Interoperability Directive
+    celex: 02016L0797-20260802
+    title: >-
+      Directive (EU) 2016/797 of the European Parliament and of the Council of 11 May 2016
+      on the interoperability of the rail system within the European Union
+  - id: tsi-ccs
+    short: CCS TSI
+    celex: 02023R1695-20260505
+    title: >-
+      Commission Implementing Regulation (EU) 2023/1695 on the technical specification for
+      interoperability relating to the control-command and signalling subsystems
+  - id: tsi-prm
+    short: PRM TSI
+    celex: 02014R1300-20230928
+    title: >-
+      Commission Regulation (EU) No 1300/2014 on the technical specifications for interoperability
+      relating to accessibility for persons with disabilities and persons with reduced mobility
+  - id: tsi-ene
+    short: ENE TSI
+    celex: 02014R1301-20230928
+    title: >-
+      Commission Regulation (EU) No 1301/2014 on the technical specifications for interoperability
+      relating to the 'energy' subsystem
+  - id: tsi-srt
+    short: SRT TSI
+    celex: 02014R1303-20240129
+    title: >-
+      Commission Regulation (EU) No 1303/2014 concerning the technical specification for
+      interoperability relating to 'safety in railway tunnels'
+  - id: tsi-noi
+    short: NOI TSI
+    celex: 02014R1304-20230928
+    title: >-
+      Commission Regulation (EU) No 1304/2014 on the technical specification for interoperability
+      relating to the subsystem 'rolling stock — noise'
+  - id: tsi-ope
+    short: OPE TSI
+    celex: 02019R0773-20250331
+    title: >-
+      Commission Implementing Regulation (EU) 2019/773 on the technical specification for
+      interoperability relating to the operation and traffic management subsystem
