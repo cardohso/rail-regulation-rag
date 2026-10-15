@@ -23,3 +23,18 @@ class HashEmbedder:
 
     def embed_query(self, text: str) -> list[float]:
         return self._vec(text)
+
+
+class FakeLLM:
+    """Scripted LLM: replies are keyed by system prompt; a reply can be a str or fn(user)->str."""
+
+    name = "fake:scripted"
+
+    def __init__(self, replies: dict):
+        self.replies = replies
+        self.calls: list[tuple[str, str]] = []
+
+    def complete(self, system: str, user: str, *, json_mode: bool = False) -> str:
+        self.calls.append((system, user))
+        reply = self.replies[system]
+        return reply(user) if callable(reply) else reply

@@ -15,6 +15,14 @@ class Settings(BaseSettings):
         env_file=paths.REPO_ROOT / ".env", env_file_encoding="utf-8", extra="ignore"
     )
 
+    # LLMs: generator answers questions, judge scores answers in the eval (different families)
+    gemini_api_key: SecretStr = SecretStr("")
+    groq_api_key: SecretStr = SecretStr("")
+    generator_provider: str = "gemini"
+    generator_model: str = ""  # empty = provider default (see providers.DEFAULT_MODELS)
+    judge_provider: str = "groq"
+    judge_model: str = ""
+
     # Retrieval
     vector_store: Literal["qdrant", "azure"] = "qdrant"
     embedding_model: str = "BAAI/bge-small-en-v1.5"
@@ -22,6 +30,12 @@ class Settings(BaseSettings):
     azure_search_endpoint: str = ""
     azure_search_api_key: SecretStr = SecretStr("")
     azure_search_index: str = "rail-tsi"
+    top_k: int = 8
+    min_score: float = 0.60
+
+    def api_key(self, provider: str) -> str:
+        secret = getattr(self, f"{provider}_api_key", None)
+        return secret.get_secret_value() if secret else ""
 
 
 @lru_cache
