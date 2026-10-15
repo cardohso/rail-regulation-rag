@@ -23,6 +23,7 @@ class AskResult:
     trace_id: str
     query: str = ""
     contexts: list[SearchHit] = field(default_factory=list)  # passages given to the generator
+    hits: list[SearchHit] = field(default_factory=list)  # raw retrieval results, before grading
 
 
 class Pipeline:
@@ -72,6 +73,7 @@ class Pipeline:
             trace_id=trace_id,
             query=state.get("query", ""),
             contexts=state.get("context", []),
+            hits=state.get("hits", []),
         )
 
     def health(self) -> dict:

@@ -26,3 +26,9 @@ chroma/
 .DS_Store
 .idea/
 .vscode/
+
+# Eval caches and scratch outputs (latest.json is committed on purpose)
+eval/.cache/
+eval/results/*
+!eval/results/latest.json
+!eval/results/latest.md

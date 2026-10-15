@@ -1,0 +1,12 @@
+# Pass thresholds for the CI eval gate. The build fails if any metric is below its minimum.
+#
+# These were set BEFORE the first real run, from what a usable regulatory assistant needs,
+# not tuned to make the first run pass. Any later change must be justified in docs/LESSONS.md.
+metrics:
+  faithfulness:       {min: 0.80}  # claims in answers must be supported by the passages given
+  answer_relevancy:   {min: 0.70}  # answers address the question asked
+  context_precision:  {min: 0.50}  # gold passages ranked high among those given to the generator
+  context_recall:     {min: 0.70}  # gold passages reach the generator
+  grounding:          {min: 0.90}  # answers cite only the documents the question is about
+  answered_rate:      {min: 0.80}  # at most ~3 of 16 answerable questions wrongly refused
+  refusal_rate:       {min: 0.75}  # at least 3 of 4 unanswerable questions refused

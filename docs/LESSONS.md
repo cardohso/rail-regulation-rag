@@ -38,3 +38,13 @@ Things that went wrong while building this project and how they were fixed.
 2. An LLM relevance grade on the retrieved passages handles near-domain questions.
 
 The golden set includes near-domain unanswerable questions, to test the second gate.
+
+## 4. RAGAS failed at import, and the token budget shaped the metrics
+
+**Symptom:** `ragas==0.4.3` (the latest release) raised `ModuleNotFoundError: langchain_community.chat_models.vertexai` on import. uv had resolved `langchain-community` 0.4.2, which no longer ships that module.
+
+**Fix:** pin `langchain-community<0.4` in the `eval` dependency group only. LangGraph keeps `langchain-core` 1.x and the app image never installs RAGAS. Time-boxed at two attempts; the fallback was to implement the metrics directly.
+
+**Second constraint: the free-tier token budget.** Run with an LLM, RAGAS context precision makes one judge call per retrieved passage. With 5 passages × 16 answerable questions, plus faithfulness and relevancy, that's roughly 150 calls and ~300k tokens. That's more than the daily budget Groq publishes for `gpt-oss-120b` (200k tokens/day on the Developer plan).
+
+**Decision:** the golden set already records the gold passage ids for every question. So context precision (same rank-weighted formula as RAGAS) and context recall are computed from ids: deterministically and for free. The judge is spent only on what needs judgement: faithfulness and answer relevancy, at ~3 calls per question. Judge replies are disk-cached, so re-scoring the same answers with a second judge, or re-running unchanged answers, costs nothing.
