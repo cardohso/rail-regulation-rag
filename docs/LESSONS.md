@@ -119,3 +119,27 @@ The 2.99 GB image was mostly torch, which only ran a 33M-parameter embedding mod
 **The trap:** `TextEmbedding.query_embed()` does **not** add bge's query instruction, which dropped query similarity to 0.956. That's enough to reorder results quietly without failing anything. The embedder prepends the instruction itself, and the parity check above is what caught it.
 
 **Cost of the swap:** indexing all 1,589 passages on a laptop CPU went from 110 s to 191 s. It's a one-off at image build time; query embedding stays in milliseconds.
+
+## 10. Hybrid retrieval fixed q13, and then the query rewrite moved it
+
+**The miss:** q13's gold passage (Directive Art. 7: "four months … deemed to have been accepted") was never in the dense top 8 (lesson 6c). The question and the answer share few words, and other "Commission decision" articles look closer in embedding space.
+
+**The change:** BM25 + vectors fused with Reciprocal Rank Fusion (RRF), in both stores:
+- Azure AI Search: `search_text` plus a `VectorizedQuery` in one request; Azure fuses them.
+- Qdrant fallback: a BM25 sparse vector per point (fastembed `Qdrant/bm25`, IDF applied by Qdrant), with both prefetched and fused by RRF.
+
+**Three things that would have gone wrong silently:**
+1. **RRF scores aren't similarities.** Azure's hybrid `@search.score` is about 0.03, so the 0.60 cosine refusal floor would have refused everything. Each hit is now scored with the cosine of its own vector, returned with the hit. On Azure that needed the `vector` field to be *retrievable*, and the first live query failed until the index was rebuilt. The floor uses the best cosine among the hits, which equals the old top-1 check in dense mode and changed no decisions on the golden set.
+2. **Two RRFs with different constants.** Azure uses k = 60; qdrant-client's local mode defaults to k = 2, which weights the top ranks far more heavily. It's now set to 60 explicitly.
+3. **The query rewrite is nondeterministic.** With the saved rewrites, hybrid put q13's gold passage at rank 6. The first CI run then got a different Gemini rewrite of the same question, BM25 on it missed the passage, and q13 was refused again. Across both rewrites and both stores, BM25 on *rewrite + original question* was the only variant that kept recall@8 at 1.00 every time; rewrite-only and question-only each dropped it once. That's 2 rewrites × 2 stores, which is weak evidence, but the reasoning holds: the user's own words are what keyword search is for, and the rewrite can drop them.
+
+**Measured** (`eval/results/retrieval.json`, same 20 saved queries; `eval/results/hybrid-local-judge-free.json`, one local end-to-end run):
+- retrieval recall@8 went from 0.91 to 1.00 on both stores;
+- answered rate went from 15/16 to 16/16 (q13 answered from its gold passage);
+- context precision went from 0.94 to 1.00, and context recall from 0.89 to 0.95;
+- **one regression:** q05's context recall dropped from 1.0 to 0.5, because the grader passed only one of its two retrieved gold passages;
+- dense parity between Azure and Qdrant is still 20/20 identical top-8. In hybrid mode it's 74% overlap, because the two BM25 analyzers tokenize differently.
+
+**What blocked the CI gate: quotas, not quality.** The gated CI run needs Groq for judging and Gemini for generating. Both hit their free daily caps the same night: Groq at 200K tokens/day, after the day's eval runs and judge experiments; Gemini at 500 requests/day, which stopped my local dense control run on its second question. So this entry reports a local, judge-free comparison, and `latest.json` stays at the gated dense run until hybrid passes in CI.
+
+*Takeaway:* when an eval has an LLM step before retrieval, a retrieval change can't be judged from one end-to-end run. Measure retrieval on fixed saved queries first, then end to end. And budget free-tier quotas per day across *all* sessions sharing a key, not per run.

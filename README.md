@@ -9,13 +9,13 @@ A question-answering assistant over EU railway interoperability law: the Interop
 **Live demo:** <https://rail-rag.calmcliff-0073b8b6.switzerlandnorth.azurecontainerapps.io>
 The demo scales to zero when idle, so the first request after a pause is slower: 6.7 s, measured once after 12 minutes idle (1.0 s once warm).
 
-**Stack:** Python 3.12 · LangGraph · FastAPI · Azure AI Search (with a local Qdrant fallback) · ONNX `bge-small-en-v1.5` embeddings · Gemini (generator) · `gpt-oss-120b` via Groq (judge) · RAGAS · Langfuse · Docker · Azure Container Apps · GitHub Actions. Everything runs on free tiers.
+**Stack:** Python 3.12 · LangGraph · FastAPI · Azure AI Search hybrid search, BM25 + vectors (with a local Qdrant fallback) · ONNX `bge-small-en-v1.5` embeddings · Gemini (generator) · `gpt-oss-120b` via Groq (judge) · RAGAS · Langfuse · Docker · Azure Container Apps · GitHub Actions. Everything runs on free tiers.
 
 ---
 
 ## Results
 
-Measured on the 20-question golden set ([`eval/golden_set.jsonl`](eval/golden_set.jsonl)), from [GitHub Actions run 38838060201](https://github.com/cardohso/rail-regulation-rag/actions/runs/38838060201) at commit `097bfba`, the commit the live demo runs. The raw numbers are in [`eval/results/latest.json`](eval/results/latest.json).
+Measured on the 20-question golden set ([`eval/golden_set.jsonl`](eval/golden_set.jsonl)), from [GitHub Actions run 38838060201](https://github.com/cardohso/rail-regulation-rag/actions/runs/38838060201) at commit `097bfba`, the commit the live demo runs. This is the gated run for **dense-only** retrieval; hybrid retrieval is measured [below](#hybrid-retrieval-before-and-after). The raw numbers are in [`eval/results/latest.json`](eval/results/latest.json).
 
 | Metric | How it's measured | Value | Gate |
 |---|---|---|---|
@@ -33,7 +33,37 @@ Latency per question on free tiers: median **2.5 s** when answered and **1.8 s**
 - **20 questions is a small set.** One question moves a rate by 5–6 points.
 - **The golden set was drafted with an AI assistant from the source texts, then reviewed and approved by me.** One reviewer, no inter-annotator agreement.
 - **Judge scores vary between runs.** An earlier local run on the same pipeline code scored faithfulness 0.97; this CI run scored 1.00. The difference is a single verdict on q09, which inspection showed to be a judge false negative ([lesson 6d](docs/LESSONS.md)).
-- **The one false refusal (q13) is a genuine retrieval miss**, not a bug: the gold passage never reaches the top 8.
+- **The one false refusal (q13) is a genuine retrieval miss**, not a bug: with dense-only retrieval the gold passage never reaches the top 8. Hybrid retrieval fixes it in the local run below.
+
+### Hybrid retrieval: before and after
+
+q13 asks how long the Commission has to decide on a request not to apply a TSI. Its answer ("four months … deemed to have been accepted", Directive Art. 7) shares few words with the question, and dense retrieval ranked other "Commission decision" articles higher. Hybrid retrieval adds BM25 keyword search and fuses both rankings with Reciprocal Rank Fusion (RRF), in Azure AI Search and in the Qdrant fallback.
+
+**Retrieval only:** the same 20 saved queries, deterministic, no LLM ([`eval/results/retrieval.json`](eval/results/retrieval.json), `python -m rail_rag.evaluation.retrieval --stores qdrant,azure`):
+
+| | Dense | Hybrid |
+|---|---|---|
+| Retrieval recall@8, Qdrant | 0.91 (15/16 gold in top 8) | **1.00** (16/16) |
+| Retrieval recall@8, Azure AI Search | 0.91 (15/16) | **1.00** (16/16) |
+| q13 gold passage rank | not in top 8 | **6** (both stores) |
+| Refusal-floor decisions changed | | none of 20 |
+
+**End to end, judge-free:** one local run of the full pipeline in hybrid mode, compared with the dense CI run above ([`eval/results/hybrid-local-judge-free.json`](eval/results/hybrid-local-judge-free.json)):
+
+| Metric | Dense (CI) | Hybrid (local) | Δ |
+|---|---|---|---|
+| Answerable questions answered | 0.94 (15/16) | **1.00** (16/16) | +1 question (q13) |
+| Context precision | 0.94 | **1.00** | +0.06 |
+| Context recall | 0.89 | **0.95** | +0.06 |
+| Retrieval recall@8 | 0.91 | **1.00** | +0.09 |
+| Grounding | 1.00 | 1.00 | 0 |
+| Unanswerable questions refused | 1.00 | 1.00 | 0 |
+
+- **q13 is answered**, citing only the gold passage (Art. 7, paragraph on the four-month deadline).
+- **q08 improved:** context recall 0.5 → 1.0.
+- **One regression, q05:** context recall 1.0 → 0.5. Both gold passages were retrieved, but the grader passed only one of them to the generator.
+- **Not yet gated in CI.** The gated CI run of hybrid mode, which adds faithfulness and answer relevancy, hit the free daily quotas first: Groq's 200K tokens/day and Gemini's 500 requests/day. Until it passes, [`latest.json`](eval/results/latest.json) and the table above stay at the dense run, and the live demo stays dense.
+- **One CI attempt still refused q13.** In [run 38841575403](https://github.com/cardohso/rail-regulation-rag/actions/runs/38841575403), the LLM rewrote q13 differently and BM25 on that rewrite alone missed the gold passage. BM25 now searches the rewrite plus the user's own question ([lesson 10](docs/LESSONS.md)).
 
 ### Same answers, two judges
 
@@ -62,7 +92,7 @@ flowchart LR
 
     subgraph G [LangGraph agent]
         direction LR
-        RW[rewrite query] --> RT[retrieve top 8]
+        RW[rewrite query] --> RT[hybrid retrieve top 8<br/>BM25 + vectors, RRF]
         RT --> GR{grade}
         GR -->|relevant| GE[generate<br/>with citations]
         GR -->|score below 0.60<br/>or none relevant| RF[refuse]
@@ -82,9 +112,9 @@ flowchart LR
 ```
 
 1. **Ingest** (`rail_rag.ingest`): downloads 7 consolidated acts from the Publications Office Cellar API and parses the XHTML into 1,254 sections with stable citation keys, e.g. `tsi-noi:Annex §4.2.1`. Licences are in [`data/SOURCES.md`](data/SOURCES.md).
-2. **Index** (`rail_rag.index`): splits sections into 1,589 passages of at most 250 words, embeds them locally, and loads them into the configured `VectorStore`.
+2. **Index** (`rail_rag.index`): splits sections into 1,589 passages of at most 250 words, embeds them locally, and loads them into the configured `VectorStore`. Azure indexes the text for BM25 itself; the Qdrant fallback stores a BM25 sparse vector next to each dense one.
 3. **Agent** (`rail_rag.graph`): five explicit LangGraph nodes. The refusal path has four independent gates, from cheapest to most expensive:
-   - a cosine floor that skips the LLM entirely;
+   - a cosine floor that skips the LLM entirely (the best cosine among the hits, also in hybrid mode);
    - an LLM relevance grade;
    - the generator declaring the context insufficient;
    - dropping any answer that cites nothing.
@@ -116,6 +146,7 @@ curl -s localhost:7860/ask -H 'content-type: application/json' \
 - **Tests** (no network, LLMs mocked): `uv run --all-groups pytest`
 - **Docker:** `docker build -t rail-rag . && docker run -p 7860:7860 --env-file .env rail-rag`
 - **Azure AI Search instead of Qdrant:** set `VECTOR_STORE=azure` plus the two `AZURE_SEARCH_*` variables, then run `uv run python -m rail_rag.index --store azure`.
+- **Dense-only retrieval** (the pre-hybrid baseline): set `SEARCH_MODE=dense`. Hybrid is the default. Indexes built before hybrid support need one rebuild with `rail_rag.index`.
 - **Re-download and re-parse the sources** (optional; parsed data is committed): `uv run python -m rail_rag.ingest`
 
 ## Run the evaluation
@@ -138,7 +169,8 @@ uv run --group eval python -m rail_rag.evaluation --judges groq,gemini # second 
 - **Retrieval metrics use gold passage ids, not an LLM.** Every golden item records its supporting passages. Context precision (the same rank-weighted formula as RAGAS) and recall are therefore deterministic and free. That leaves the free judge budget (Groq: 8K tokens/min) for faithfulness and relevancy, which need judgement.
 - **A grounding check per source document.** Three questions are built so that a plausible answer exists in the *wrong* document (e.g. train door widths in the PRM TSI vs tunnel safe-area doors in the SRT TSI). Grounding fails if any citation comes from a document the question isn't about.
 - **Structured output is enforced, not requested.** Gemini at temperature 0 sometimes returned `[[1],[2]]` instead of `[1,2]`, which silently turned answerable questions into refusals. The providers now enforce JSON schemas, and the parser tolerates shape drift ([lesson 6a](docs/LESSONS.md)).
-- **A swappable `VectorStore`.** Azure AI Search (Free tier) is the production store and in-process Qdrant the fallback. On the 16 answerable golden questions both return identical top-5 passages with identical scores, which also verifies the conversion of Azure's cosine score.
+- **A swappable `VectorStore`.** Azure AI Search (Free tier) is the production store and in-process Qdrant the fallback. In dense mode both return identical top-8 passages for all 20 golden queries, which also verifies the conversion of Azure's cosine score. In hybrid mode they agree on 74% of the top 8: Azure's BM25 analyzer and fastembed's `Qdrant/bm25` tokenize differently. Both still find every gold passage.
+- **Hybrid retrieval, refusal floor still in cosine.** BM25 and vector results are fused with RRF (k = 60 in both stores; Qdrant's local default is 2, so it is set explicitly). RRF scores are rank-based (around 0.03), so they can't drive the refusal floor. Each hybrid hit is instead scored with the cosine of its own vector, which the store returns with the hit, so no second query is needed. The floor uses the best cosine among the hits, which in dense mode is exactly the old top-1 check. It is never looser than before, and on the golden set it changed no decisions. BM25 searches the rewritten query plus the user's question, because the LLM rewrite can drop the exact wording keyword search is for.
 - **Local ONNX embeddings.** These are the same weights as sentence-transformers (cosine 1.0000 on the corpus) without torch, so the image shrank from 2.99 GB to 942 MB.
 - **The deployed image is the tested image.** The `docker` workflow builds the image, checks the container runs non-root, `/health` and the UI respond and Docker's `HEALTHCHECK` turns healthy, and only then pushes it to GHCR. The live app runs that exact tag.
 - **Free-tier guard rails.** A per-client and daily rate limit protects the demo's free LLM quota. Retries use exponential backoff and honour `Retry-After`. Judge replies are disk-cached, so re-scoring is free.
@@ -149,16 +181,18 @@ uv run --group eval python -m rail_rag.evaluation --judges groq,gemini # second 
 - **Not legal advice.** Consolidated EUR-Lex texts are documentation tools with no legal effect.
 - **Coverage.** 7 acts only; the infrastructure and locomotive/passenger TSIs were left out for size. EN standards referenced by the TSIs aren't included, so questions answered only by a standard are refused.
 - **Parsing.** Figures are dropped. Merged table cells lose their value (e.g. one column of NOI Table 2).
-- **Dense-only retrieval** misses some exact-wording questions (q13).
+- **The LLM query rewrite is not deterministic**, even at temperature 0. Retrieval for the same question can differ between runs (q13 did, [lesson 10](docs/LESSONS.md)).
+- **Hybrid mode is not yet gated in CI**, and it moved one context-recall result the wrong way (q05). See [above](#hybrid-retrieval-before-and-after).
 - **Small evaluation.** 20 questions with one reviewer. Judge scores carry noise (see q09).
 - **Free tiers.** Rate limits cause occasional long waits. The demo has a daily question budget, and cold starts add a few seconds (6.7 s measured once). The rate limiter is in-memory, so it's correct only for a single replica.
 
 **Next steps:**
-1. Hybrid search (BM25 + vectors) in Azure AI Search for the q13-type misses.
-2. A perturbation-based judge-bias test: plant unsupported claims and measure each judge's miss rate.
-3. A larger golden set with a second annotator and agreement statistics.
-4. Continuous deployment to Azure from the `docker` workflow.
-5. Table `rowspan` handling, and the infrastructure and locomotive/passenger TSIs.
+1. Pass the gated CI eval in hybrid mode, then deploy it. The run is waiting on free-tier quotas.
+2. Cache or pin the query rewrite per question, so eval runs differ only in what changed.
+3. A perturbation-based judge-bias test: plant unsupported claims and measure each judge's miss rate.
+4. A larger golden set with a second annotator and agreement statistics.
+5. Continuous deployment to Azure from the `docker` workflow.
+6. Table `rowspan` handling, and the infrastructure and locomotive/passenger TSIs.
 
 ## More
 
