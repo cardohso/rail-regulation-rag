@@ -143,3 +143,9 @@ The 2.99 GB image was mostly torch, which only ran a 33M-parameter embedding mod
 **What blocked the CI gate: quotas, not quality.** The gated CI run needs Groq for judging and Gemini for generating. Both hit their free daily caps the same night: Groq at 200K tokens/day, after the day's eval runs and judge experiments; Gemini at 500 requests/day, which stopped my local dense control run on its second question. So this entry reports a local, judge-free comparison, and `latest.json` stays at the gated dense run until hybrid passes in CI.
 
 *Takeaway:* when an eval has an LLM step before retrieval, a retrieval change can't be judged from one end-to-end run. Measure retrieval on fixed saved queries first, then end to end. And budget free-tier quotas per day across *all* sessions sharing a key, not per run.
+
+## 10. Separate quotas for the demo, and secrets that don't reload
+
+- **Eval and demo shared one Gemini key.** A day of eval runs used up the free daily requests, and the live demo started paying for it with 20+ s rate-limit backoffs. The demo now uses its own key from a separate Google project, so it has a separate free quota (`GEMINI_API_KEY_DEMO`). Eval traffic can no longer starve the page a recruiter clicks.
+- **Rotating a Container Apps secret doesn't reach running replicas.** Secrets sit outside the revision template, so `az containerapp update` with the same image kept serving the old key. `revision restart` returned `InternalServerError`, and `--revision-suffix` is rejected on *express* environments. *Fix:* every deploy sets `DEPLOY_ID=<timestamp>`, which changes the template and forces a fresh revision that reads the current secrets.
+- **Measure before blaming.** After the switch, answers took 8–14 s. The Langfuse trace showed retrieval at 0.07 s and all the time in Gemini calls. Raw calls with no retries took ~3.2 s each with no 429s, against 0.9 s that morning: provider-side latency, not our code.

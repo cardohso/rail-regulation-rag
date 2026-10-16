@@ -19,6 +19,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from dotenv import dotenv_values
@@ -58,6 +59,11 @@ def main() -> int:
     args = ap.parse_args()
 
     env = dotenv_values(ROOT / ".env")
+    # The live demo gets its own Gemini key (a separate Google project, so a separate free quota):
+    # eval runs must never be able to exhaust the quota a recruiter's click depends on.
+    if env.get("GEMINI_API_KEY_DEMO"):
+        env["GEMINI_API_KEY"] = env["GEMINI_API_KEY_DEMO"]
+        print("using GEMINI_API_KEY_DEMO for the live app")
     missing = [k for k in ("GEMINI_API_KEY",) if not env.get(k)]
     if missing:
         sys.exit(f"missing in .env: {missing}")
@@ -78,12 +84,17 @@ def main() -> int:
         f"AZURE_SEARCH_INDEX={env.get('AZURE_SEARCH_INDEX') or 'rail-tsi'}",
         f"LANGFUSE_HOST={env.get('LANGFUSE_HOST') or 'https://cloud.langfuse.com'}",
         "LANGFUSE_ENVIRONMENT=azure-container-apps",
+        f"DEPLOY_ID={int(time.time())}",  # new value each deploy -> new revision (see below)
     ]
 
     if exists("containerapp", "show", "-g", args.group, "-n", args.app):
         print(f"updating app {args.app} → {args.image}")
         az("containerapp", "secret", "set", "-g", args.group, "-n", args.app,
            "--secrets", *secrets, "-o", "none")  # fmt: skip
+        # Secrets live outside the revision template, so an update with an unchanged template
+        # keeps serving old secret values. Express environments reject both revision suffixes and
+        # `revision restart`, so DEPLOY_ID (set in env_vars above) changes the template and
+        # forces a fresh revision that reads the current secrets.
         az("containerapp", "update", "-g", args.group, "-n", args.app, "--image", args.image,
            "--set-env-vars", *env_vars, "-o", "none")  # fmt: skip
     else:
