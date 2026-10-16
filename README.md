@@ -1,5 +1,167 @@
-# rail-regulation-rag
+# EU Rail Regulation Assistant
 
-Question answering over EU railway Technical Specifications for Interoperability (TSIs), with citations and an evaluation gate in CI.
+[![ci](https://github.com/cardohso/rail-regulation-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/cardohso/rail-regulation-rag/actions/workflows/ci.yml)
+[![eval](https://github.com/cardohso/rail-regulation-rag/actions/workflows/eval.yml/badge.svg)](https://github.com/cardohso/rail-regulation-rag/actions/workflows/eval.yml)
+[![docker](https://github.com/cardohso/rail-regulation-rag/actions/workflows/docker.yml/badge.svg)](https://github.com/cardohso/rail-regulation-rag/actions/workflows/docker.yml)
 
-Work in progress.
+A question-answering assistant over EU railway interoperability law: the Interoperability Directive and six Technical Specifications for Interoperability (TSIs). Every answer cites the exact passage it comes from, and the assistant refuses when its sources don't cover the question. An evaluation harness runs on GitHub Actions and fails the build when answer quality, grounding or refusal behaviour drops below fixed thresholds.
+
+**Live demo:** <https://rail-rag.calmcliff-0073b8b6.switzerlandnorth.azurecontainerapps.io>
+The demo scales to zero when idle, so the first request after a pause takes about COLD_START.
+
+**Stack:** Python 3.12 · LangGraph · FastAPI · Azure AI Search (with a local Qdrant fallback) · ONNX `bge-small-en-v1.5` embeddings · Gemini (generator) · `gpt-oss-120b` via Groq (judge) · RAGAS · Langfuse · Docker · Azure Container Apps · GitHub Actions. Everything runs on free tiers.
+
+---
+
+## Results
+
+Measured on the 20-question golden set ([`eval/golden_set.jsonl`](eval/golden_set.jsonl)), from [GitHub Actions run 38838060201](https://github.com/cardohso/rail-regulation-rag/actions/runs/38838060201) at commit `097bfba`, the commit the live demo runs. The raw numbers are in [`eval/results/latest.json`](eval/results/latest.json).
+
+| Metric | How it's measured | Value | Gate |
+|---|---|---|---|
+| Faithfulness | RAGAS; judge `gpt-oss-120b` (a different model family from the generator) | **1.00** | ≥ 0.80 |
+| Answer relevancy | RAGAS | **0.90** | ≥ 0.70 |
+| Context precision | rank-weighted, against gold passage ids | **0.94** | ≥ 0.50 |
+| Context recall | against gold passage ids | **0.89** | ≥ 0.70 |
+| Grounding | answers cite only the documents the question is about | **1.00** | ≥ 0.90 |
+| Answerable questions answered | 16 answerable questions | **0.94** (15/16) | ≥ 0.80 |
+| Unanswerable questions refused | 4 out-of-scope / near-domain questions | **1.00** (4/4) | ≥ 0.75 |
+
+Latency per question on free tiers: median **2.5 s** when answered and **1.8 s** when refused. The slowest answer took 73.8 s, all of it spent backing off from a free-tier rate limit.
+
+**Read these numbers with care:**
+- **20 questions is a small set.** One question moves a rate by 5–6 points.
+- **The golden set was drafted with an AI assistant from the source texts, then reviewed and approved by me.** One reviewer, no inter-annotator agreement.
+- **Judge scores vary between runs.** An earlier local run on the same pipeline code scored faithfulness 0.97; this CI run scored 1.00. The difference is a single verdict on q09, which inspection showed to be a judge false negative ([lesson 6d](docs/LESSONS.md)).
+- **The one false refusal (q13) is a genuine retrieval miss**, not a bug: the gold passage never reaches the top 8.
+
+### Same answers, two judges
+
+The same 15 answers from [run 38831471610](https://github.com/cardohso/rail-regulation-rag/actions/runs/38831471610) were scored by a judge from a different family and by the generator's own model ([`eval/results/dual-judge.md`](eval/results/dual-judge.md)):
+
+| | `gpt-oss-120b` (different family) | `gemini-3.5-flash-lite` (same model as the generator) | Δ |
+|---|---|---|---|
+| Faithfulness | 1.00 | 1.00 | 0.00 |
+| Answer relevancy | 0.90 | 0.91 | +0.01 |
+
+There's no measurable self-preference here, **but this setup can't detect it**:
+- faithfulness is at its ceiling;
+- n = 15;
+- RAGAS answer relevancy is dominated by an embedding model that's the same for both judges.
+
+The right test plants errors in answers and measures which judge misses them ([lesson 7](docs/LESSONS.md)). The gate keeps the cross-family judge anyway; it costs nothing.
+
+---
+
+## Architecture
+
+```mermaid
+flowchart LR
+    U([User / UI]) -->|POST /ask| API[FastAPI<br/>rate limits]
+    API --> G
+
+    subgraph G [LangGraph agent]
+        direction LR
+        RW[rewrite query] --> RT[retrieve top 8]
+        RT --> GR{grade}
+        GR -->|relevant| GE[generate<br/>with citations]
+        GR -->|score below 0.60<br/>or none relevant| RF[refuse]
+        GE -->|insufficient<br/>or uncited| RF
+    end
+
+    RT <--> VS[(Azure AI Search<br/>or local Qdrant)]
+    EMB[bge-small ONNX<br/>local embeddings] --> RT
+    RW & GR & GE <--> LLM[Gemini<br/>generator]
+    G -. traces .-> LF[Langfuse]
+
+    subgraph CI [GitHub Actions]
+        direction LR
+        T[ci: ruff + pytest<br/>LLMs mocked] ~~~ E[eval: golden set<br/>judge gpt-oss-120b<br/>fails on threshold] ~~~ D[docker: build,<br/>smoke test, push]
+    end
+    D -->|ghcr.io image| ACA[Azure Container Apps<br/>scale to zero]
+```
+
+1. **Ingest** (`rail_rag.ingest`): downloads 7 consolidated acts from the Publications Office Cellar API and parses the XHTML into 1,254 sections with stable citation keys, e.g. `tsi-noi:Annex §4.2.1`. Licences are in [`data/SOURCES.md`](data/SOURCES.md).
+2. **Index** (`rail_rag.index`): splits sections into 1,589 passages of at most 250 words, embeds them locally, and loads them into the configured `VectorStore`.
+3. **Agent** (`rail_rag.graph`): five explicit LangGraph nodes. The refusal path has four independent gates, from cheapest to most expensive:
+   - a cosine floor that skips the LLM entirely;
+   - an LLM relevance grade;
+   - the generator declaring the context insufficient;
+   - dropping any answer that cites nothing.
+4. **API** (`rail_rag.api`): `POST /ask` returns the answer, numbered citations (document, section, passage text, EUR-Lex link) and a Langfuse `trace_id`. `GET /health` reports the index and models. `/` serves the UI.
+
+---
+
+## Run it locally
+
+You need [uv](https://docs.astral.sh/uv/) and a free [Gemini API key](https://aistudio.google.com/apikey). Allow about 10 minutes.
+
+```bash
+git clone https://github.com/cardohso/rail-regulation-rag.git
+cd rail-regulation-rag
+uv sync
+cp .env.example .env          # then set GEMINI_API_KEY; everything else is optional
+uv run python -m rail_rag.index   # embeds 1,589 passages into a local Qdrant index (~3 min on a laptop CPU)
+uv run uvicorn rail_rag.api:app --port 7860
+```
+
+Then open <http://localhost:7860>, or call the API directly:
+
+```bash
+curl -s localhost:7860/ask -H 'content-type: application/json' \
+  -d '{"question": "How many wheelchair spaces must a 250 m long passenger unit have?"}'
+```
+
+**Other ways to run it:**
+- **Tests** (no network, LLMs mocked): `uv run --all-groups pytest`
+- **Docker:** `docker build -t rail-rag . && docker run -p 7860:7860 --env-file .env rail-rag`
+- **Azure AI Search instead of Qdrant:** set `VECTOR_STORE=azure` plus the two `AZURE_SEARCH_*` variables, then run `uv run python -m rail_rag.index --store azure`.
+- **Re-download and re-parse the sources** (optional; parsed data is committed): `uv run python -m rail_rag.ingest`
+
+## Run the evaluation
+
+Needs `GEMINI_API_KEY` (generator) and `GROQ_API_KEY` (judge), both free.
+
+```bash
+uv run --group eval python -m rail_rag.evaluation                     # generate, judge, gate; exit 1 on failure
+uv run --group eval python -m rail_rag.evaluation --judges groq,gemini # second judge on the same answers
+```
+
+- **Thresholds** are in [`eval/thresholds.yaml`](eval/thresholds.yaml). They were set *before* the first real run, and changing them requires a written justification.
+- **In CI**, `eval.yml` runs on pull requests and manual dispatch only, not on every push, to stay inside free-tier rate limits. It writes the results table to the job summary and uploads the full results.
+
+---
+
+## Design decisions
+
+- **The judge is from a different model family than the generator.** LLM judges tend to rate text from their own family more favourably (self-preference bias, a theme of a CAPSI 2026 paper I co-authored on testing non-deterministic GenAI pipelines). The CLI refuses to gate on a same-provider judge unless explicitly overridden.
+- **Retrieval metrics use gold passage ids, not an LLM.** Every golden item records its supporting passages. Context precision (the same rank-weighted formula as RAGAS) and recall are therefore deterministic and free. That leaves the free judge budget (Groq: 8K tokens/min) for faithfulness and relevancy, which need judgement.
+- **A grounding check per source document.** Three questions are built so that a plausible answer exists in the *wrong* document (e.g. train door widths in the PRM TSI vs tunnel safe-area doors in the SRT TSI). Grounding fails if any citation comes from a document the question isn't about.
+- **Structured output is enforced, not requested.** Gemini at temperature 0 sometimes returned `[[1],[2]]` instead of `[1,2]`, which silently turned answerable questions into refusals. The providers now enforce JSON schemas, and the parser tolerates shape drift ([lesson 6a](docs/LESSONS.md)).
+- **A swappable `VectorStore`.** Azure AI Search (Free tier) is the production store and in-process Qdrant the fallback. On the 16 answerable golden questions both return identical top-5 passages with identical scores, which also verifies the conversion of Azure's cosine score.
+- **Local ONNX embeddings.** These are the same weights as sentence-transformers (cosine 1.0000 on the corpus) without torch, so the image shrank from 2.99 GB to 942 MB.
+- **The deployed image is the tested image.** The `docker` workflow builds the image, checks the container runs non-root, `/health` and the UI respond and Docker's `HEALTHCHECK` turns healthy, and only then pushes it to GHCR. The live app runs that exact tag.
+- **Free-tier guard rails.** A per-client and daily rate limit protects the demo's free LLM quota. Retries use exponential backoff and honour `Retry-After`. Judge replies are disk-cached, so re-scoring is free.
+
+## Limitations and next steps
+
+**Limitations:**
+- **Not legal advice.** Consolidated EUR-Lex texts are documentation tools with no legal effect.
+- **Coverage.** 7 acts only; the infrastructure and locomotive/passenger TSIs were left out for size. EN standards referenced by the TSIs aren't included, so questions answered only by a standard are refused.
+- **Parsing.** Figures are dropped. Merged table cells lose their value (e.g. one column of NOI Table 2).
+- **Dense-only retrieval** misses some exact-wording questions (q13).
+- **Small evaluation.** 20 questions with one reviewer. Judge scores carry noise (see q09).
+- **Free tiers.** Rate limits cause occasional long waits. The demo has a daily question budget, and cold starts take about COLD_START. The rate limiter is in-memory, so it's correct only for a single replica.
+
+**Next steps:**
+1. Hybrid search (BM25 + vectors) in Azure AI Search for the q13-type misses.
+2. A perturbation-based judge-bias test: plant unsupported claims and measure each judge's miss rate.
+3. A larger golden set with a second annotator and agreement statistics.
+4. Continuous deployment to Azure from the `docker` workflow.
+5. Table `rowspan` handling, and the infrastructure and locomotive/passenger TSIs.
+
+## More
+
+- [`docs/LESSONS.md`](docs/LESSONS.md): what went wrong while building this and how it was fixed. Examples: a parser that silently dropped 47% of a document, false refusals from JSON shape drift, and a judge false negative.
+- [`data/SOURCES.md`](data/SOURCES.md): sources, reuse terms and caveats. Source texts: EUR-Lex, © European Union, 1998–2026.
+- Built by João Pedro Cardoso. Licence: [MIT](LICENSE).
