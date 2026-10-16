@@ -1,6 +1,6 @@
 ## Evaluation PASSED
 
-Generator `gemini:gemini-3.5-flash-lite` · judge `groq:openai/gpt-oss-120b` · 20 golden items · commit `2c6ba60` · 2026-10-16 00:58 UTC · [CI run](https://github.com/cardohso/rail-regulation-rag/actions/runs/38831471610)
+Generator `gemini:gemini-3.5-flash-lite` · judge `groq:openai/gpt-oss-120b` · 20 golden items · commit `097bfba` · 2026-10-16 02:09 UTC · [CI run](https://github.com/cardohso/rail-regulation-rag/actions/runs/38838060201)
 
 | Metric | Value | Threshold | Status |
 |---|---|---|---|
@@ -30,21 +30,21 @@ Generator `gemini:gemini-3.5-flash-lite` · judge `groq:openai/gpt-oss-120b` · 
 
 | Item | Type | Refused | Faithfulness | Relevancy | Ctx P | Ctx R | Grounded |
 |---|---|---|---|---|---|---|---|
-| q01 | answerable | no | 1.00 | 0.90 | 1.00 | 1.00 | yes |
-| q02 | answerable | no | 1.00 | 0.95 | 1.00 | 1.00 | yes |
+| q01 | answerable | no | 1.00 | 0.88 | 1.00 | 1.00 | yes |
+| q02 | answerable | no | 1.00 | 0.94 | 1.00 | 1.00 | yes |
 | q03 | answerable | no | 1.00 | 0.79 | 1.00 | 1.00 | yes |
-| q04 | answerable | no | 1.00 | 0.81 | 1.00 | 1.00 | yes |
-| q05 | answerable | no | 1.00 | 0.87 | 1.00 | 1.00 | yes |
-| q06 | answerable | no | 1.00 | 0.86 | 1.00 | 1.00 | yes |
+| q04 | answerable | no | 1.00 | 0.71 | 1.00 | 1.00 | yes |
+| q05 | answerable | no | 1.00 | 0.94 | 1.00 | 1.00 | yes |
+| q06 | answerable | no | 1.00 | 0.89 | 1.00 | 1.00 | yes |
 | q07 | answerable | no | 1.00 | 0.93 | 1.00 | 1.00 | yes |
-| q08 | answerable | no | 1.00 | 0.78 | 1.00 | 0.50 | yes |
-| q09 | answerable | no | 1.00 | 0.91 | 1.00 | 1.00 | yes |
+| q08 | answerable | no | 1.00 | 0.91 | 1.00 | 0.50 | yes |
+| q09 | answerable | no | 1.00 | 0.86 | 1.00 | 1.00 | yes |
 | q10 | answerable | no | 1.00 | 0.95 | 1.00 | 0.67 | yes |
-| q11 | answerable | no | 1.00 | 0.99 | 1.00 | 1.00 | yes |
+| q11 | answerable | no | 1.00 | 0.97 | 1.00 | 1.00 | yes |
 | q12 | answerable | no | 1.00 | 0.85 | 1.00 | 1.00 | yes |
 | q13 | answerable | yes | — | — | 0.00 | 0.00 | — |
 | q14 | wrong_document | no | 1.00 | 0.93 | 1.00 | 1.00 | yes |
-| q15 | wrong_document | no | 1.00 | 0.99 | 1.00 | 1.00 | yes |
+| q15 | wrong_document | no | 1.00 | 0.96 | 1.00 | 1.00 | yes |
 | q16 | wrong_document | no | 1.00 | 0.98 | 1.00 | 1.00 | yes |
 | q17 | unanswerable | yes | — | — | — | — | — |
 | q18 | unanswerable | yes | — | — | — | — | — |
