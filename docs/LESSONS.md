@@ -71,3 +71,10 @@ The first full run (20 questions, Gemini generating, `gpt-oss-120b` judging) exp
 **b. The judge crashed on truncated output.** RAGAS sets `max_tokens=1024` by default. `gpt-oss-120b` is a reasoning model and spends part of that budget on hidden reasoning, so a faithfulness verdict was cut off mid-JSON (`IncompleteOutputException`) and the run aborted at q11. *Fix:* `max_tokens=4096` and `reasoning_effort="low"`. Low effort also keeps each call small under Groq's free-tier limit of 8K tokens/minute.
 
 **c. One genuine retrieval miss (q13).** The gold passage (Directive Art. 7(7): "four months … deemed to have been accepted") is not in the top 8 for its question. Dense retrieval ranked other "Commission decision" articles from the TSIs higher. This one is a retrieval limitation, not a bug; see Limitations.
+
+**d. A judge false negative, kept as measured.** In the passing run, q09 ("Class A train protection and radio systems") scored faithfulness **0.50**, but the answer restates its single passage almost word for word. Inspecting the judge's intermediate output showed the cause:
+- RAGAS split "RMR comprises two Class A radio systems: GSM-R and FRMCS" into two claims: "…comprises two Class A radio systems: GSM-R" and "…: FRMCS".
+- `gpt-oss-120b` then rejected each claim as "incomplete, so it cannot be directly inferred".
+- The other two claims were accepted, so the score was 2/4.
+
+The error comes from statement decomposition, not from the generator. I kept the score as measured rather than overriding it. This is why the README reports judge scores with a second judge and treats them as noisy estimates, not ground truth.
