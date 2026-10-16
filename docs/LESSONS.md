@@ -97,3 +97,13 @@ The error comes from statement decomposition, not from the generator. I kept the
 **What would:** a set of answers with planted unsupported claims (perturbations), judged by both models, measuring how often each judge *misses* the planted errors. Self-preference shows up as leniency on errors, not as a shift on correct answers. That's listed as a next step.
 
 **Why the gate still uses a different family:** the cost is zero, and the literature (and our CAPSI 2026 paper) shows the bias exists in less saturated settings. Not detecting it here is not a reason to drop the safeguard.
+
+## 8. The free hosting assumption broke at deploy time
+
+The plan assumed Hugging Face Spaces would host a Docker app on free CPU. At deploy time `create_repo(space_sdk="docker")` returned **402 Payment Required**: "hosting Gradio and Docker Spaces on free cpu-basic requires a PRO subscription". Only static Spaces are still free.
+
+Two things limited the damage:
+1. **The image was already proven elsewhere.** A GitHub Actions job builds it and smoke-tests it (non-root user, `/health`, UI, Docker `HEALTHCHECK`) before any hosting step, so changing the host doesn't re-open "does the container work?".
+2. **The deploy script failed before sending anything.** Space creation runs before the step that copies secrets, so no keys left the machine.
+
+*Takeaway:* check a free tier's current terms at the start of a project, not at deploy time. Pricing pages change faster than tutorials.
