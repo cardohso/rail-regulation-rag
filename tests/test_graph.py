@@ -5,7 +5,7 @@ import pytest
 from rail_rag import prompts
 from rail_rag.chunking import Passage
 from rail_rag.citations import format_citations, renumber
-from rail_rag.graph import GraphConfig, build_graph
+from rail_rag.graph import GraphConfig, build_graph, passage_numbers
 from rail_rag.vectorstore import QdrantStore, SearchHit
 from tests.fakes import FakeLLM, HashEmbedder
 
@@ -64,7 +64,7 @@ def test_no_relevant_passages_refuses_without_generating(store):
 
 
 def test_invalid_grader_numbers_are_ignored(store):
-    state, _ = run(store, {prompts.GRADE: j(relevant=[0, 99, "1"])})
+    state, _ = run(store, {prompts.GRADE: j(relevant=[0, 99, "x", None])})
     assert state["refusal_reason"] == "no_relevant_passages"
 
 
@@ -123,3 +123,49 @@ def test_format_citations_links_to_eurlex_consolidated_version():
     assert (c.doc_id, c.document, c.section) == ("tsi-srt", "SRT TSI", "Annex §4.2.1.5.4")
     assert c.url.endswith("CELEX:02014R1303-20240129")
     assert c.passage == PASSAGES[0].text
+
+
+@pytest.mark.parametrize(
+    "reply, expected",
+    [
+        ([1, 3], [1, 3]),
+        ([[1], [2], [3]], [1, 2, 3]),  # seen from Gemini at temperature 0
+        (["2", " 3 "], [2, 3]),
+        (2, [2]),
+        ([1, 1, True, None, "x"], [1]),
+        (None, []),
+    ],
+)
+def test_passage_numbers_tolerates_grader_shape_drift(reply, expected):
+    assert passage_numbers(reply) == expected
+
+
+def test_nested_grader_reply_no_longer_causes_false_refusal(store):
+    state, _ = run(store, {
+        prompts.GRADE: j(relevant=[[1], [2]]),
+        prompts.GENERATE: j(answer="90 minutes [1].", insufficient=False),
+    })  # fmt: skip
+    assert state["refused"] is False
+
+
+def test_llm_calls_request_structured_output(store):
+    calls = []
+
+    class SpyLLM(FakeLLM):
+        def complete(self, system, user, *, schema=None):
+            calls.append((system, schema))
+            return super().complete(system, user, schema=schema)
+
+    llm = SpyLLM({
+        prompts.REWRITE: "q",
+        prompts.GRADE: j(relevant=[1]),
+        prompts.GENERATE: j(answer="x [1]", insufficient=False),
+    })  # fmt: skip
+    build_graph(llm, HashEmbedder(), store, GraphConfig(min_score=0.0)).invoke(
+        {"question": "tunnel"}
+    )
+    assert dict(calls) == {
+        prompts.REWRITE: None,
+        prompts.GRADE: prompts.GRADE_SCHEMA,
+        prompts.GENERATE: prompts.GENERATE_SCHEMA,
+    }

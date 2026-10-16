@@ -34,7 +34,7 @@ class FakeLLM:
         self.replies = replies
         self.calls: list[tuple[str, str]] = []
 
-    def complete(self, system: str, user: str, *, json_mode: bool = False) -> str:
+    def complete(self, system: str, user: str, *, schema: dict | None = None) -> str:
         self.calls.append((system, user))
         reply = self.replies[system]
         return reply(user) if callable(reply) else reply

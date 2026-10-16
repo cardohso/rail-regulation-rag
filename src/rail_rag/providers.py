@@ -19,7 +19,8 @@ RETRYABLE_STATUS = {408, 409, 429, 500, 502, 503, 504}
 class LLM(Protocol):
     name: str  # "<provider>:<model>", recorded in traces and eval results
 
-    def complete(self, system: str, user: str, *, json_mode: bool = False) -> str: ...
+    def complete(self, system: str, user: str, *, schema: dict | None = None) -> str:
+        """Return the model's text. With a JSON schema, the provider must return matching JSON."""
 
 
 class LLMUnavailable(RuntimeError):
@@ -80,13 +81,14 @@ class GeminiLLM:
         self.model = model
         self.name = f"gemini:{model}"
 
-    def complete(self, system: str, user: str, *, json_mode: bool = False) -> str:
+    def complete(self, system: str, user: str, *, schema: dict | None = None) -> str:
         from google.genai import types
 
         config = types.GenerateContentConfig(
             system_instruction=system,
             temperature=0.0,
-            response_mime_type="application/json" if json_mode else None,
+            response_mime_type="application/json" if schema else None,
+            response_json_schema=schema,
         )
         response = with_retries(
             lambda: self.client.models.generate_content(
@@ -104,8 +106,13 @@ class GroqLLM:
         self.model = model
         self.name = f"groq:{model}"
 
-    def complete(self, system: str, user: str, *, json_mode: bool = False) -> str:
-        kwargs = {"response_format": {"type": "json_object"}} if json_mode else {}
+    def complete(self, system: str, user: str, *, schema: dict | None = None) -> str:
+        kwargs = {}
+        if schema:
+            kwargs["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {"name": "reply", "schema": schema},
+            }
         response = with_retries(
             lambda: self.client.chat.completions.create(
                 model=self.model,

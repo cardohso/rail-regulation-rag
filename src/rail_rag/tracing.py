@@ -120,13 +120,13 @@ class TracedLLM:
     def __init__(self, llm: LLM, tracer: Tracer):
         self.llm, self.tracer, self.name = llm, tracer, llm.name
 
-    def complete(self, system: str, user: str, *, json_mode: bool = False) -> str:
+    def complete(self, system: str, user: str, *, schema: dict | None = None) -> str:
         messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
         with self.tracer.observe(
             "llm", as_type="generation", input=messages, model=self.llm.name,
-            metadata={"json_mode": json_mode},
+            metadata={"structured_output": schema is not None},
         ) as gen:  # fmt: skip
-            output = self.llm.complete(system, user, json_mode=json_mode)
+            output = self.llm.complete(system, user, schema=schema)
             gen.update(output=output)
             return output
 

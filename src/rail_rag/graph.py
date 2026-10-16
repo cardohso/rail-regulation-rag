@@ -52,6 +52,24 @@ NODE_TYPES = {
 }
 
 
+def passage_numbers(value) -> list[int]:
+    """Unique passage numbers from a grader reply. Tolerates shapes models drift into even with
+    structured output: [[1], [2]], ["3"], 2. Seen in practice: Gemini returning [[1],[2],[3]]."""
+    out: list[int] = []
+    stack = [value]
+    while stack:
+        v = stack.pop(0)
+        if isinstance(v, list):
+            stack[:0] = v
+        elif isinstance(v, bool):
+            continue
+        elif isinstance(v, int) or (isinstance(v, str) and v.strip().isdigit()):
+            n = int(v)
+            if n not in out:
+                out.append(n)
+    return out
+
+
 def build_graph(
     llm: LLM,
     embedder: Embedder,
@@ -77,11 +95,8 @@ def build_graph(
         user = f"Question: {state['question']}\n\nPassages:\n" + prompts.numbered_passages(
             [h.passage.embed_text for h in hits]
         )
-        reply = parse_json(llm.complete(prompts.GRADE, user, json_mode=True))
-        picked: list[int] = []
-        for i in reply.get("relevant", []):
-            if isinstance(i, int) and 1 <= i <= len(hits) and i not in picked:
-                picked.append(i)
+        reply = parse_json(llm.complete(prompts.GRADE, user, schema=prompts.GRADE_SCHEMA))
+        picked = [i for i in passage_numbers(reply.get("relevant")) if 1 <= i <= len(hits)]
         # Keep retrieval order (best score first), not the order the grader listed them.
         context = [hits[i - 1] for i in sorted(picked)][: cfg.max_context]
         if not context:
@@ -93,7 +108,7 @@ def build_graph(
         user = f"Question: {state['question']}\n\nPassages:\n" + prompts.numbered_passages(
             [h.passage.embed_text for h in context]
         )
-        reply = parse_json(llm.complete(prompts.GENERATE, user, json_mode=True))
+        reply = parse_json(llm.complete(prompts.GENERATE, user, schema=prompts.GENERATE_SCHEMA))
         if reply.get("insufficient") or not str(reply.get("answer", "")).strip():
             return {"refused": True, "refusal_reason": "insufficient_context", "cited": []}
         answer, cited = renumber(str(reply["answer"]), context)

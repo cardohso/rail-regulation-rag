@@ -17,6 +17,7 @@ OPENAI_COMPATIBLE_URLS = {
     "gemini": "https://generativelanguage.googleapis.com/v1beta/openai/",
 }
 MARKERS = re.compile(r"\s*\[\d+\]")
+JUDGE_MAX_TOKENS = 4096
 
 
 class Judge(Protocol):
@@ -56,7 +57,14 @@ class RagasJudge:
             api_key=api_key, base_url=OPENAI_COMPATIBLE_URLS[provider], max_retries=10
         )
         cache = DiskCacheBackend(str(cache_dir)) if cache_dir else None
-        llm = llm_factory(model, provider="openai", client=client, cache=cache, temperature=0.0)
+        # RAGAS defaults to max_tokens=1024. Reasoning models (gpt-oss) spend part of that on
+        # hidden reasoning, which truncated verdicts mid-JSON in our first run. Low effort also
+        # keeps each call small under Groq's free-tier 8K tokens/minute.
+        extra = {"reasoning_effort": "low"} if model.startswith("openai/gpt-oss") else {}
+        llm = llm_factory(
+            model, provider="openai", client=client, cache=cache,
+            temperature=0.0, max_tokens=JUDGE_MAX_TOKENS, **extra,
+        )  # fmt: skip
         self._faithfulness = Faithfulness(llm=llm)
         self._relevancy = AnswerRelevancy(llm=llm, embeddings=_RagasEmbeddings(embedder))
 

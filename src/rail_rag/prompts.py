@@ -32,6 +32,18 @@ Do not use outside knowledge, and do not guess.
 
 Return JSON: {"answer": "<text with [n] markers>", "insufficient": <true|false>}"""
 
+# Enforced by the provider (structured output), so replies cannot drift in shape.
+GRADE_SCHEMA = {
+    "type": "object",
+    "properties": {"relevant": {"type": "array", "items": {"type": "integer"}}},
+    "required": ["relevant"],
+}
+GENERATE_SCHEMA = {
+    "type": "object",
+    "properties": {"answer": {"type": "string"}, "insufficient": {"type": "boolean"}},
+    "required": ["answer", "insufficient"],
+}
+
 REFUSAL = (
     "I can't answer that from the indexed EU railway regulations. The question may be outside "
     "their scope, or the answer may be in a document that isn't indexed."
