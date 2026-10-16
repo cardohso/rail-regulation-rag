@@ -119,10 +119,10 @@
               "tsi-srt:Annex §4.2.1.5.2#1",
               "tsi-srt:Annex §4.2.1.5.5#1",
               "tsi-srt:Annex §4.2.1.5.4#1",
-              "tsi-srt:Annex §2.4#1",
               "tsi-srt:Annex §7.2.2.2#1",
-              "tsi-srt:Annex §2.1#1",
-              "tsi-srt:Annex §3.1#2"
+              "tsi-srt:Annex §2.4#1",
+              "tsi-srt:Annex §3.1#2",
+              "tsi-srt:Annex §2.1#1"
             ],
             "best_cosine": 0.8135,
             "passes_floor": true,
@@ -154,12 +154,12 @@
             "ids": [
               "tsi-srt:Annex §4.2.1.5.4#1",
               "tsi-srt:Annex §4.2.1.10#1",
+              "tsi-srt:Annex §4.2.1.9#1",
+              "tsi-srt:Annex §4.2.1.5.5#1",
               "tsi-srt:Annex §4.4.4#1",
               "tsi-srt:Annex §2.4#1",
-              "tsi-srt:Annex §4.2.1.5.5#1",
-              "tsi-srt:Annex §4.2.1.9#1",
               "tsi-srt:Annex §7.2.2.2#1",
-              "tsi-srt:Annex §3.1#2"
+              "tsi-srt:Annex §4.4.2#1"
             ],
             "best_cosine": 0.807,
             "passes_floor": true,
@@ -232,8 +232,8 @@
               "tsi-prm:Annex §4.2.1.8#1",
               "tsi-prm:Annex §4.2.1.1#1",
               "tsi-prm:Annex §Specific Case France ‘P’ for the ‘Ile de France’ network#1",
-              "tsi-prm:Annex §2.2#1",
-              "tsi-prm:Annex §4.2.2.3.2#1"
+              "tsi-prm:Annex §4.2.1.7#1",
+              "tsi-prm:Annex §2.2#1"
             ],
             "best_cosine": 0.8493,
             "passes_floor": true,
@@ -302,9 +302,9 @@
             "ids": [
               "tsi-ene:Annex §7.1.1#1",
               "tsi-ene:Annex §4.2.2#1",
-              "tsi-ene:Annex §2.1#1",
               "tsi-ene:Annex#1",
               "tsi-ene:Annex §6.2.4.1#1",
+              "tsi-ene:Annex §2.1#1",
               "tsi-ene:Annex §4.2.3#1",
               "tsi-ene:Annex §7.2#1",
               "tsi-ene:Annex §4.3.2#1"
@@ -417,8 +417,8 @@
               "tsi-ope:Annex §7.2.2.4#1",
               "tsi-ope:Annex §Cooperation with neighbouring countries:#1",
               "tsi-ope:Annex §Specific cases:#1",
-              "tsi-ope:Annex §7.2.2.2#1",
-              "tsi-ope:Annex §4.2.2.1.3#1"
+              "tsi-ope:Appendix J §Glossary#7",
+              "tsi-ope:Annex §7.2.2.2#1"
             ],
             "best_cosine": 0.8527,
             "passes_floor": true,
@@ -486,13 +486,13 @@
           "hybrid": {
             "ids": [
               "tsi-prm:Article 4#1",
-              "iop-directive:Article 11#2",
-              "iop-directive:Article 14#1",
-              "iop-directive:Article 16#1",
               "iop-directive:Article 7#3",
+              "iop-directive:Article 11#2",
+              "iop-directive:Article 16#1",
+              "iop-directive:Article 14#1",
               "iop-directive:Article 7#4",
               "iop-directive:Article 14#2",
-              "iop-directive:Article 11#1"
+              "iop-directive:Article 7#2"
             ],
             "best_cosine": 0.8005,
             "passes_floor": true,
@@ -528,8 +528,8 @@
               "tsi-srt:Annex §4.2.1.5.4#1",
               "tsi-srt:Annex §2.4#1",
               "tsi-srt:Annex §4.2.1.7#1",
-              "tsi-srt:Annex §4.2.1.5.1#1",
-              "tsi-prm:Annex §4.2.2.3.2#1"
+              "tsi-prm:Annex §4.2.2.3.2#1",
+              "tsi-srt:Annex §4.2.1.5.1#1"
             ],
             "best_cosine": 0.8122,
             "passes_floor": true,
@@ -560,13 +560,13 @@
           "hybrid": {
             "ids": [
               "iop-directive:Article 21#11",
-              "iop-directive:Article 21#2",
-              "iop-directive:Article 26#4",
-              "iop-directive:Article 24#1",
-              "iop-directive:Article 25#1",
               "iop-directive:Article 54#1",
-              "iop-directive:Article 21#10",
-              "tsi-ccs:Annex I §1.3#2"
+              "iop-directive:Article 24#1",
+              "iop-directive:Article 21#2",
+              "iop-directive:Article 25#1",
+              "iop-directive:Article 26#4",
+              "tsi-ccs:Annex I §1.3#2",
+              "tsi-ccs:Annex I §7.4.2.2#1"
             ],
             "best_cosine": 0.836,
             "passes_floor": true,
@@ -599,8 +599,8 @@
               "tsi-ope:Annex §4.2.1.5#1",
               "tsi-srt:Annex §4.6.1#1",
               "tsi-ope:Annex §4.6.2.1#1",
-              "tsi-ope:Annex §3.2#2",
               "tsi-ope:Annex §4.6.2.2#1",
+              "tsi-ope:Annex §3.2#2",
               "tsi-ope:Appendix G §3#1",
               "tsi-ope:Appendix F §3#1",
               "tsi-srt:Annex §4.4.5#1"
@@ -664,14 +664,14 @@
           },
           "hybrid": {
             "ids": [
+              "tsi-ope:Annex §4.2.2.5.1#1",
+              "tsi-ope:Annex §4.2.2.7.1#1",
               "tsi-ope:Annex §4.2.2.7.2#1",
               "tsi-ope:Annex §7.1#1",
-              "tsi-ope:Annex §4.2.2.5.1#1",
               "tsi-ope:Appendix G §2.1#1",
+              "tsi-ope:Annex §4.2.2.5.1#2",
               "tsi-ope:Appendix F §2.1#1",
-              "tsi-ope:Annex §4.2.2.7.1#1",
-              "tsi-ope:Annex#1",
-              "iop-directive:Article 2#7"
+              "tsi-ope:Annex §4.6.3.2#1"
             ],
             "best_cosine": 0.7673,
             "passes_floor": true
@@ -699,12 +699,12 @@
             "ids": [
               "tsi-srt:Annex#1",
               "tsi-srt:Annex §4.2.3#1",
-              "tsi-ope:Annex §4.3.3.1#1",
               "tsi-srt:Annex §2.4#2",
-              "tsi-ccs:Annex I §4.3.2#1",
+              "tsi-ope:Annex §4.3.3.1#1",
               "tsi-srt:Annex §1.1#1",
+              "tsi-ccs:Annex I §4.3.2#1",
               "tsi-ope:Appendix J §Glossary#1",
-              "tsi-ope:Annex#2"
+              "tsi-noi:Annex §1#1"
             ],
             "best_cosine": 0.7609,
             "passes_floor": true
@@ -786,12 +786,12 @@
           "hybrid": {
             "ids": [
               "tsi-noi:Annex §4.2.1#1",
-              "tsi-noi:Annex §4.2.3#1",
               "tsi-noi:Annex §4.2.4#1",
+              "tsi-noi:Annex §4.2.3#1",
               "tsi-noi:Annex §6.2.2.3.2.1#1",
               "tsi-noi:Annex §6.2.2.1#1",
-              "tsi-noi:Annex §4.2.2#1",
               "tsi-noi:Annex §(a) Specific case Finland#1",
+              "tsi-noi:Annex §4.2.2#1",
               "tsi-noi:Annex §6.2.2.3.2.1#2"
             ],
             "best_cosine": 0.8522,
@@ -824,12 +824,12 @@
             "ids": [
               "tsi-noi:Annex §4.2.3#1",
               "tsi-noi:Annex §6.2.2.3.2.2#1",
-              "tsi-noi:Annex#1",
-              "tsi-noi:Annex §4.2.2#1",
-              "tsi-noi:Annex §4.2.4#1",
               "tsi-noi:Annex §(b) Specific case Sweden#1",
+              "tsi-noi:Annex#1",
               "tsi-noi:Annex §4.2.1#1",
-              "tsi-noi:Annex §4.2#1"
+              "tsi-noi:Annex §4.2.4#1",
+              "tsi-noi:Annex §4.2.2#1",
+              "tsi-noi:Appendix B#1"
             ],
             "best_cosine": 0.8777,
             "passes_floor": true,
@@ -863,9 +863,9 @@
               "tsi-srt:Annex §4.2.1.5.5#1",
               "tsi-srt:Annex §4.2.1.5.2#1",
               "tsi-srt:Annex §4.2.1.5.4#1",
+              "tsi-srt:Annex §7.2.2.2#1",
               "tsi-srt:Annex §2.4#1",
               "tsi-srt:Annex §4.4.6#1",
-              "tsi-srt:Annex §7.2.2.2#1",
               "tsi-ccs:Annex I §4.3.5#1"
             ],
             "best_cosine": 0.8135,
@@ -901,8 +901,8 @@
               "tsi-srt:Annex §4.2.1.10#1",
               "tsi-srt:Annex §4.4.2#1",
               "tsi-srt:Annex §4.2.1.5.5#1",
-              "tsi-srt:Annex §4.4.4#1",
               "tsi-srt:Annex §7.2.2.2#1",
+              "tsi-srt:Annex §4.4.4#1",
               "tsi-srt:Annex §2.4#1"
             ],
             "best_cosine": 0.807,
@@ -934,13 +934,13 @@
           "hybrid": {
             "ids": [
               "tsi-srt:Annex §4.2.1.7#1",
+              "tsi-srt:Annex §4.2.3#1",
               "tsi-srt:Annex §4.4.6#2",
               "tsi-srt:Annex §4.4.6#1",
-              "tsi-srt:Annex §4.2.3#1",
               "tsi-srt:Annex §4.2.1.7#3",
               "tsi-srt:Annex §4.2.1.7#2",
               "tsi-srt:Annex §7#1",
-              "tsi-srt:Annex §7.2.4#1"
+              "tsi-srt:Annex §2.4#1"
             ],
             "best_cosine": 0.861,
             "passes_floor": true,
@@ -972,10 +972,10 @@
             "ids": [
               "tsi-prm:Annex §4.2.2.2#1",
               "tsi-prm:Annex §4.2.2.2#3",
-              "tsi-prm:Annex §4.2.1.1#1",
               "tsi-prm:Appendix F §Wheelchair spaces#1",
               "tsi-prm:Annex §4.2.2.2#2",
               "tsi-prm:Annex §Specific Case France ‘P’ for the ‘Ile de France’ network#1",
+              "tsi-prm:Annex §4.2.1.1#1",
               "tsi-prm:Annex §4.4.2.4#1",
               "tsi-prm:Annex §4.2.2#1"
             ],
@@ -1010,11 +1010,11 @@
               "tsi-prm:Annex §4.2.2.3.2#1",
               "tsi-prm:Annex §4.2.1.3#1",
               "tsi-prm:Annex §4.2.2.3.3#1",
-              "tsi-prm:Annex §4.2.2#1",
-              "tsi-prm:Annex §4.4.2.4#1",
               "tsi-prm:Appendix E §E.2 CHARACTERISTICS AND MODULES#2",
-              "tsi-prm:Annex §4.4.2.6#1",
-              "tsi-prm:Annex §5.3.2.4#1"
+              "tsi-prm:Annex §4.4.2.4#1",
+              "tsi-prm:Annex §4.2.2#1",
+              "tsi-prm:Annex §5.3.2.4#1",
+              "tsi-prm:Annex §4.4.2.6#1"
             ],
             "best_cosine": 0.8796,
             "passes_floor": true,
@@ -1082,12 +1082,12 @@
           "hybrid": {
             "ids": [
               "tsi-ccs:Annex I §2.2#1",
-              "tsi-ccs:Annex I §4.1.3#1",
               "tsi-ccs:Appendix H §2.1.1#1",
-              "tsi-ccs:Annex II §1#1",
-              "tsi-ccs:Annex I §7.2.7#1",
               "tsi-ccs:Annex II §3.1#1",
+              "tsi-ccs:Annex I §4.1.3#1",
+              "tsi-ccs:Annex II §1#1",
               "tsi-ccs:Annex I §4.2.6.1#1",
+              "tsi-ccs:Annex I §7.2.7#1",
               "tsi-ccs:Annex I §4.1.2#1"
             ],
             "best_cosine": 0.8742,
@@ -1123,9 +1123,9 @@
               "tsi-ope:Annex §4.2.2.1.3.2#1",
               "tsi-ope:Annex §4.2.2.1.2#1",
               "tsi-ope:Annex §7.2.2.4#1",
-              "tsi-ope:Annex §4.3.3.2#1",
               "tsi-ope:Annex §7.2.2.1#1",
-              "tsi-ope:Appendix B §5#1"
+              "tsi-ope:Appendix B §5#1",
+              "tsi-ope:Annex §4.3.3.2#1"
             ],
             "best_cosine": 0.813,
             "passes_floor": true,
@@ -1155,19 +1155,19 @@
           },
           "hybrid": {
             "ids": [
-              "tsi-ope:Annex §4.2.2.1.3.2#1",
               "tsi-ope:Annex §Phasing out:#1",
+              "tsi-ope:Annex §4.2.2.1.3.2#1",
               "tsi-ope:Annex §7.2.2.1#1",
-              "tsi-ope:Annex §4.2.2.1.3#1",
               "tsi-ope:Annex §7.2.2.4#1",
-              "tsi-ope:Annex §4.3.3.2#1",
-              "tsi-ope:Annex §7.2.2.2#1",
-              "tsi-ope:Annex §Cooperation with neighbouring countries:#1"
+              "tsi-ope:Annex §4.2.2.1.3#1",
+              "tsi-ope:Annex §Specific cases:#1",
+              "tsi-ope:Annex §Cooperation with neighbouring countries:#1",
+              "tsi-ope:Annex §7.2.2.2#1"
             ],
             "best_cosine": 0.8527,
             "passes_floor": true,
             "recall_at_k": 1.0,
-            "gold_rank": 2
+            "gold_rank": 1
           }
         },
         {
@@ -1195,10 +1195,10 @@
               "iop-directive:Article 21#1",
               "iop-directive:Article 21#5",
               "iop-directive:Article 21#3",
-              "iop-directive:Article 21#2",
-              "iop-directive:Article 21#10",
+              "iop-directive:Article 21#4",
               "iop-directive:Article 21#8",
               "iop-directive:Article 21#11",
+              "iop-directive:Article 21#10",
               "iop-directive:Article 21#9"
             ],
             "best_cosine": 0.8371,
@@ -1230,18 +1230,18 @@
           "hybrid": {
             "ids": [
               "iop-directive:Article 16#1",
-              "iop-directive:Article 11#2",
               "iop-directive:Article 7#3",
-              "iop-directive:Article 11#1",
+              "iop-directive:Article 11#2",
               "iop-directive:Article 7#2",
-              "tsi-prm:Article 4#1",
+              "iop-directive:Article 11#1",
               "iop-directive:Article 7#4",
-              "iop-directive:Article 7#1"
+              "iop-directive:Article 14#1",
+              "tsi-ene:Article 9#1"
             ],
             "best_cosine": 0.8005,
             "passes_floor": true,
             "recall_at_k": 1.0,
-            "gold_rank": 7
+            "gold_rank": 6
           }
         },
         {
@@ -1271,9 +1271,9 @@
               "tsi-srt:Annex §4.2.1.5.1#1",
               "tsi-srt:Annex §4.2.1.5.5#1",
               "tsi-srt:Annex §4.2.1.5.4#1",
-              "tsi-srt:Annex §7.2.2.2#1",
-              "tsi-prm:Annex §4.2.2.3.2#1",
-              "tsi-prm:Annex §4.2.1.3#1"
+              "tsi-prm:Annex §4.2.1.3#1",
+              "tsi-srt:Annex §2.4#1",
+              "tsi-srt:Annex §7.2.2.2#1"
             ],
             "best_cosine": 0.8122,
             "passes_floor": true,
@@ -1304,13 +1304,13 @@
           "hybrid": {
             "ids": [
               "iop-directive:Article 21#11",
-              "iop-directive:Article 21#2",
               "iop-directive:Article 21#1",
+              "iop-directive:Article 21#2",
               "iop-directive:Article 21#9",
-              "iop-directive:Article 21#10",
               "iop-directive:Article 54#1",
+              "iop-directive:Article 21#10",
               "iop-directive:Article 25#1",
-              "iop-directive:Article 21#4"
+              "iop-directive:Article 21#3"
             ],
             "best_cosine": 0.836,
             "passes_floor": true,
@@ -1342,12 +1342,12 @@
             "ids": [
               "tsi-ope:Annex §4.2.1.5#1",
               "tsi-srt:Annex §4.6.1#1",
-              "tsi-srt:Annex §4.4.5#1",
               "tsi-ope:Annex §3.2#2",
+              "tsi-srt:Annex §4.4.5#1",
               "tsi-ope:Appendix C §1#1",
-              "tsi-ope:Annex §4.6.2.1#1",
               "tsi-ope:Appendix G §3#1",
-              "tsi-srt:Annex §4.3.2#1"
+              "tsi-ope:Annex §4.6.2.1#1",
+              "tsi-ope:Annex §4.2.1.2#1"
             ],
             "best_cosine": 0.8986,
             "passes_floor": true,
@@ -1377,12 +1377,12 @@
             "ids": [
               "tsi-ccs:Annex I §7.7.2.3#2",
               "tsi-prm:Annex §Specific Case France ‘P’ for the ‘Ile de France’ network (2)#1",
-              "tsi-noi:Annex §(d) Particular implementation rules for wagons operated on quieter routes of France#1",
               "tsi-ope:Annex §Specific cases:#1",
-              "tsi-ope:Annex §4.4.1#1",
+              "tsi-noi:Annex §(d) Particular implementation rules for wagons operated on quieter routes of France#1",
               "tsi-prm:Annex §Specific Case France ‘P’ for the ‘Ile de France’ network (3)#1",
-              "tsi-ope:Annex §4.2.2.7.1#1",
-              "tsi-ope:Annex §4.2.1.2.1#3"
+              "tsi-ope:Annex §4.4.1#1",
+              "tsi-ope:Appendix D §Elements the infrastructure manager has to provide to the railway undertaking for the Route Book#4",
+              "tsi-ccs:Annex II §3.3#1"
             ],
             "best_cosine": 0.6889,
             "passes_floor": true
@@ -1409,13 +1409,13 @@
           "hybrid": {
             "ids": [
               "tsi-ope:Annex §4.2.2.7.2#1",
-              "tsi-ope:Annex §7.1#1",
               "tsi-ope:Appendix A §6.4.1#1",
+              "tsi-ope:Annex §7.1#1",
               "tsi-prm:Article 7a#1",
-              "tsi-ope:Appendix G §2.1#1",
               "tsi-ope:Annex §4.2.3.5#1",
-              "tsi-ope:Appendix F §2.1#1",
-              "tsi-ope:Annex §4.8.1#1"
+              "tsi-ope:Appendix G §2.1#1",
+              "tsi-ope:Annex §4.8.1#1",
+              "tsi-ope:Appendix F §2.1#1"
             ],
             "best_cosine": 0.7673,
             "passes_floor": true
@@ -1441,16 +1441,16 @@
           },
           "hybrid": {
             "ids": [
+              "tsi-srt:Annex#1",
               "tsi-ccs:Annex I §4.3.2#1",
               "tsi-srt:Annex §4.2.3#1",
+              "tsi-srt:Annex §2.2#1",
+              "tsi-prm:Annex §2.1.2#1",
               "tsi-prm:Annex §4.4.2.18#1",
               "tsi-ccs:Annex I §4.3.2#3",
-              "tsi-srt:Annex#1",
-              "tsi-ope:Appendix F §2.3#1",
-              "tsi-ope:Annex §4.3.3.1#1",
-              "tsi-prm:Annex §2.1.2#1"
+              "tsi-ope:Appendix F §2.3#1"
             ],
-            "best_cosine": 0.7609,
+            "best_cosine": 0.74,
             "passes_floor": true
           }
         },
@@ -1477,11 +1477,11 @@
               "tsi-ope:Annex §4.2.2.6.2#1",
               "tsi-ope:Annex §4.2.2.6.2#2",
               "tsi-ope:Appendix A §4.2#3",
+              "tsi-ope:Annex §4.2.2.6.2#3",
               "tsi-ene:Annex §P case (4)#1",
               "tsi-noi:Annex §6.2.2.3.2.2#1",
-              "tsi-ope:Annex §4.2.2.6.2#3",
-              "tsi-noi:Annex §6.2.2.3.2.1#1",
-              "tsi-ope:Appendix A §5.1.7#1"
+              "tsi-ope:Appendix A §5.1.7#1",
+              "tsi-noi:Annex §6.2.2.3.2.1#1"
             ],
             "best_cosine": 0.6516,
             "passes_floor": true
@@ -1497,7 +1497,7 @@
     },
     "hybrid": {
       "identical_top_k": "0/20",
-      "mean_overlap": 0.7438
+      "mean_overlap": 0.7375
     }
   }
 }

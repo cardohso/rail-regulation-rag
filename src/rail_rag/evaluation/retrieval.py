@@ -19,6 +19,7 @@ from rail_rag.config import get_settings
 from rail_rag.embeddings import LocalEmbedder
 from rail_rag.evaluation.metrics import ANSWERABLE, context_recall
 from rail_rag.evaluation.runner import load_golden
+from rail_rag.graph import keyword_text
 from rail_rag.vectorstore import make_store
 
 EVAL_DIR = paths.REPO_ROOT / "eval"
@@ -31,14 +32,14 @@ def gold_rank(hit_ids: list[str], gold: set[str]) -> int | None:
 
 
 def compare(items: list[dict], queries: dict[str, str], search, k: int, floor: float) -> dict:
-    """search(query, mode) -> hits. Per-item ranks and scores, and mean recall@k per mode."""
+    """search(item, query, mode) -> hits. Per-item ranks and scores, mean recall@k per mode."""
     rows = []
     for item in items:
         query = queries[item["id"]]
         row: dict = {"id": item["id"], "type": item["type"], "query": query}
         gold = set(item["supporting_passages"])
         for mode in MODES:
-            hits = search(query, mode)
+            hits = search(item, query, mode)
             ids = [h.passage.id for h in hits]
             best = max((h.score for h in hits), default=0.0)
             row[mode] = {
@@ -86,8 +87,9 @@ def main(argv: list[str] | None = None) -> int:
     for name in [x.strip() for x in args.stores.split(",") if x.strip()]:
         store = make_store(s.model_copy(update={"vector_store": name}))
 
-        def search(query, mode, store=store):
-            text = query if mode == "hybrid" else None
+        def search(item, query, mode, store=store):  # the same texts the graph would send
+            state = {"question": item["question"], "query": query}
+            text = keyword_text(state) if mode == "hybrid" else None
             return store.search(vectors[query], k=s.top_k, text=text)
 
         result["stores"][name] = compare(items, queries, search, s.top_k, s.min_score)

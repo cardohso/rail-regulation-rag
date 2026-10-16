@@ -225,7 +225,7 @@ def test_retrieval_compare_reports_recall_rank_and_floor_changes():
         ("qu", "hybrid"): [(PASSAGES[2], 0.55)],
     }
 
-    def search(query, mode):
+    def search(item, query, mode):
         return [SearchHit(p, s) for p, s in canned[(query, mode)]]
 
     out = compare(items, {"a": "qa", "u": "qu"}, search, k=2, floor=0.6)

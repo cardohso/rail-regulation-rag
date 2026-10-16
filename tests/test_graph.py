@@ -73,7 +73,10 @@ def test_hybrid_mode_passes_rewritten_query_text_to_store():
     llm = FakeLLM({prompts.REWRITE: "emergency lighting tunnels"})
     build_graph(llm, HashEmbedder(), store, GraphConfig(hybrid=True)).invoke({"question": "q"})
     build_graph(llm, HashEmbedder(), store, GraphConfig(hybrid=False)).invoke({"question": "q"})
-    assert store.calls == [{"k": 8, "text": "emergency lighting tunnels"}, {"k": 8, "text": None}]
+    assert store.calls == [
+        {"k": 8, "text": "emergency lighting tunnels q"},  # rewrite + the user's own words
+        {"k": 8, "text": None},
+    ]
 
 
 def test_score_floor_uses_best_cosine_not_first_rank():

@@ -71,6 +71,14 @@ def passage_numbers(value) -> list[int]:
     return out
 
 
+def keyword_text(state: RAGState) -> str:
+    """BM25 input: the rewritten query plus the user's own words. The rewrite is good for dense
+    search but can drop the exact wording keyword search exists for (measured on q13: the
+    gold passage's BM25 rank moved between rewrites; with both texts it stayed in the top 8)."""
+    query, question = state["query"], state["question"]
+    return query if query == question else f"{query} {question}"
+
+
 def build_graph(
     llm: LLM,
     embedder: Embedder,
@@ -89,7 +97,9 @@ def build_graph(
     def retrieve(state: RAGState) -> RAGState:
         query = state["query"]
         vector = embedder.embed_query(query)
-        return {"hits": store.search(vector, k=cfg.k, text=query if cfg.hybrid else None)}
+        return {
+            "hits": store.search(vector, k=cfg.k, text=keyword_text(state) if cfg.hybrid else None)
+        }
 
     def grade(state: RAGState) -> RAGState:
         hits = state["hits"]
