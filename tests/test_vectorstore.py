@@ -1,4 +1,5 @@
 import base64
+from types import SimpleNamespace
 
 import pytest
 
@@ -54,13 +55,19 @@ def test_qdrant_upsert_is_idempotent(qdrant, embedder):
 
 
 class FakeSearchClient:
-    def __init__(self, results=()):
+    def __init__(self, results=(), reject=()):
         self.batches: list[list[dict]] = []
         self.results = list(results)
+        self.reject = set(reject)
         self.last_query: dict = {}
 
     def merge_or_upload_documents(self, docs):
         self.batches.append(docs)
+        return [
+            SimpleNamespace(key=d["key"], succeeded=d["key"] not in self.reject,
+                            error_message="too large")
+            for d in docs
+        ]  # fmt: skip
 
     def search(self, **kwargs):
         self.last_query = kwargs
@@ -109,6 +116,14 @@ def test_azure_keys_are_url_safe_and_decode_to_passage_id():
         )
         assert base64.urlsafe_b64decode(doc["key"]).decode() == p.id
         assert doc["text"] == p.text
+
+
+def test_azure_upsert_raises_when_documents_are_rejected():
+    from rail_rag.vectorstore import _azure_key
+
+    client = FakeSearchClient(reject={_azure_key(PASSAGES[1].id)})
+    with pytest.raises(RuntimeError, match="1 documents rejected"):
+        azure(client).upsert(PASSAGES, [[0.0]] * 3)
 
 
 def test_azure_uploads_in_batches_of_500():

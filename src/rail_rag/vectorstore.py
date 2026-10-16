@@ -144,7 +144,13 @@ class AzureSearchStore:
             for p, v in zip(passages, vectors, strict=True)
         ]
         for i in range(0, len(docs), 500):  # keep request bodies well under the 16 MB limit
-            self.search_client.merge_or_upload_documents(docs[i : i + 500])
+            results = self.search_client.merge_or_upload_documents(docs[i : i + 500])
+            failed = [r for r in results if not r.succeeded]
+            if failed:  # Azure reports per-document failures without raising
+                raise RuntimeError(
+                    f"{len(failed)} documents rejected by Azure, e.g. "
+                    f"{failed[0].key}: {failed[0].error_message}"
+                )
 
     def search(self, vector: list[float], k: int = 5) -> list[SearchHit]:
         from azure.search.documents.models import VectorizedQuery
