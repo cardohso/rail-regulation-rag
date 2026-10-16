@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     azure_search_endpoint: str = ""
     azure_search_api_key: SecretStr = SecretStr("")
     azure_search_index: str = "rail-tsi"
+    search_mode: Literal["dense", "hybrid"] = "hybrid"  # hybrid = BM25 + vectors, RRF-fused
     top_k: int = 8
     min_score: float = 0.60
 

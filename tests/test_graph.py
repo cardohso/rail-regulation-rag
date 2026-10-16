@@ -7,7 +7,7 @@ from rail_rag.chunking import Passage
 from rail_rag.citations import format_citations, renumber
 from rail_rag.graph import GraphConfig, build_graph, passage_numbers
 from rail_rag.vectorstore import QdrantStore, SearchHit
-from tests.fakes import FakeLLM, HashEmbedder
+from tests.fakes import FakeLLM, HashEmbedder, HashSparseEncoder
 
 PASSAGES = [
     Passage("tsi-srt:Annex §4.2.1.5.4#1", "tsi-srt", "SRT TSI", "Annex §4.2.1.5.4",
@@ -26,7 +26,7 @@ def j(**kw) -> str:
 @pytest.fixture
 def store():
     e = HashEmbedder()
-    s = QdrantStore(":memory:")
+    s = QdrantStore(":memory:", sparse_encoder=HashSparseEncoder())
     s.reset(e.dim)
     s.upsert(PASSAGES, e.embed_documents([p.embed_text for p in PASSAGES]))
     return s
@@ -55,6 +55,36 @@ def test_low_retrieval_score_refuses_without_grading_or_generating(store):
     assert state["refused"] and state["refusal_reason"] == "low_retrieval_score"
     assert state["answer"] == prompts.REFUSAL and state["cited"] == []
     assert len(llm.calls) == 1  # only the rewrite
+
+
+class FixedStore:
+    """Returns canned hits and records how it was called."""
+
+    def __init__(self, hits):
+        self.hits, self.calls = hits, []
+
+    def search(self, vector, k=5, text=None):
+        self.calls.append({"k": k, "text": text})
+        return self.hits
+
+
+def test_hybrid_mode_passes_rewritten_query_text_to_store():
+    store = FixedStore([])
+    llm = FakeLLM({prompts.REWRITE: "emergency lighting tunnels"})
+    build_graph(llm, HashEmbedder(), store, GraphConfig(hybrid=True)).invoke({"question": "q"})
+    build_graph(llm, HashEmbedder(), store, GraphConfig(hybrid=False)).invoke({"question": "q"})
+    assert store.calls == [{"k": 8, "text": "emergency lighting tunnels"}, {"k": 8, "text": None}]
+
+
+def test_score_floor_uses_best_cosine_not_first_rank():
+    # Hybrid ranking can put a keyword match with a low cosine first; the floor must still pass
+    # when a passage further down is semantically close.
+    hits = [SearchHit(PASSAGES[1], 0.40), SearchHit(PASSAGES[0], 0.75)]
+    llm = FakeLLM({prompts.REWRITE: "x", prompts.GRADE: j(relevant=[])})
+    state = build_graph(llm, HashEmbedder(), FixedStore(hits), GraphConfig(min_score=0.6)).invoke(
+        {"question": "q"}
+    )
+    assert state["refusal_reason"] == "no_relevant_passages"  # got past the floor to the grader
 
 
 def test_no_relevant_passages_refuses_without_generating(store):

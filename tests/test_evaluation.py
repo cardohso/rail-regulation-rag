@@ -18,7 +18,7 @@ from rail_rag.evaluation.metrics import (
 from rail_rag.graph import GraphConfig
 from rail_rag.pipeline import Pipeline
 from rail_rag.vectorstore import QdrantStore
-from tests.fakes import FakeLLM, HashEmbedder
+from tests.fakes import FakeLLM, HashEmbedder, HashSparseEncoder
 from tests.test_graph import PASSAGES
 
 # --- judge-free metrics ---------------------------------------------------------------------
@@ -134,7 +134,7 @@ class FakeJudge:
 
 def fake_pipeline():
     e = HashEmbedder()
-    store = QdrantStore(":memory:")
+    store = QdrantStore(":memory:", sparse_encoder=HashSparseEncoder())
     store.reset(e.dim)
     store.upsert(PASSAGES, e.embed_documents([p.embed_text for p in PASSAGES]))
 
@@ -208,3 +208,28 @@ def test_cli_compares_two_judges_on_the_same_answers(monkeypatch, tmp_path, gold
 def test_cli_refuses_same_family_gating_judge(monkeypatch, tmp_path, golden):
     with pytest.raises(SystemExit, match="Self-preference"):
         run_cli(monkeypatch, tmp_path, golden, {}, "--judges", "gemini")
+
+
+def test_retrieval_compare_reports_recall_rank_and_floor_changes():
+    from rail_rag.evaluation.retrieval import compare
+    from rail_rag.vectorstore import SearchHit
+
+    items = [
+        {"id": "a", "type": "answerable", "supporting_passages": [PASSAGES[0].id]},
+        {"id": "u", "type": "unanswerable", "supporting_passages": []},
+    ]
+    canned = {  # (query, mode) -> [(passage, cosine)]
+        ("qa", "dense"): [(PASSAGES[1], 0.7)],
+        ("qa", "hybrid"): [(PASSAGES[1], 0.7), (PASSAGES[0], 0.5)],
+        ("qu", "dense"): [(PASSAGES[1], 0.65)],
+        ("qu", "hybrid"): [(PASSAGES[2], 0.55)],
+    }
+
+    def search(query, mode):
+        return [SearchHit(p, s) for p, s in canned[(query, mode)]]
+
+    out = compare(items, {"a": "qa", "u": "qu"}, search, k=2, floor=0.6)
+    assert out["summary"]["dense"]["retrieval_recall_at_k"] == 0.0
+    assert out["summary"]["hybrid"]["retrieval_recall_at_k"] == 1.0
+    assert out["items"][0]["hybrid"]["gold_rank"] == 2
+    assert out["summary"]["floor_decisions_changed"] == ["u"]

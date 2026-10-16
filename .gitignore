@@ -32,6 +32,7 @@ eval/.cache/
 eval/results/*
 !eval/results/latest.json
 !eval/results/latest.md
+!eval/results/retrieval.json
 
 # Local tool config
 .claude/

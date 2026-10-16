@@ -25,6 +25,23 @@ class HashEmbedder:
         return self._vec(text)
 
 
+class HashSparseEncoder:
+    """Term counts hashed to indices: a stand-in for BM25 term weights (Qdrant adds the IDF)."""
+
+    def _sparse(self, text: str) -> tuple[list[int], list[float]]:
+        counts: dict[int, float] = {}
+        for word in re.findall(r"\w+", text.lower()):
+            i = int(hashlib.md5(word.encode()).hexdigest(), 16) % 100_000
+            counts[i] = counts.get(i, 0.0) + 1.0
+        return list(counts), list(counts.values())
+
+    def embed_documents(self, texts: list[str]) -> list[tuple[list[int], list[float]]]:
+        return [self._sparse(t) for t in texts]
+
+    def embed_query(self, text: str) -> tuple[list[int], list[float]]:
+        return self._sparse(text)
+
+
 class FakeLLM:
     """Scripted LLM: replies are keyed by system prompt; a reply can be a str or fn(user)->str."""
 

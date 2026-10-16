@@ -28,6 +28,7 @@ RefusalReason = Literal[
 class GraphConfig:
     k: int = 8  # passages retrieved
     min_score: float = 0.60  # cosine floor: below this, refuse without calling the LLM
+    hybrid: bool = False  # BM25 + vector search fused with RRF (see vectorstore)
     max_context: int = 5  # graded passages passed to the generator
 
 
@@ -86,11 +87,15 @@ def build_graph(
         return {"query": (query[0] if query else "") or state["question"]}
 
     def retrieve(state: RAGState) -> RAGState:
-        return {"hits": store.search(embedder.embed_query(state["query"]), k=cfg.k)}
+        query = state["query"]
+        vector = embedder.embed_query(query)
+        return {"hits": store.search(vector, k=cfg.k, text=query if cfg.hybrid else None)}
 
     def grade(state: RAGState) -> RAGState:
         hits = state["hits"]
-        if not hits or hits[0].score < cfg.min_score:
+        # Best cosine among the hits, not the first hit's: in hybrid mode the top-ranked
+        # passage can be a keyword match with a lower cosine than one ranked below it.
+        if not hits or max(h.score for h in hits) < cfg.min_score:
             return {"context": [], "refused": True, "refusal_reason": "low_retrieval_score"}
         user = f"Question: {state['question']}\n\nPassages:\n" + prompts.numbered_passages(
             [h.passage.embed_text for h in hits]

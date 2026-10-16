@@ -41,6 +41,7 @@ def render(result: dict) -> str:
         f"## Evaluation {status}",
         "",
         f"Generator `{meta['generator']}` · judge `{primary}` · {meta['n_items']} golden items · "
+        f"{meta.get('search_mode', 'dense')} retrieval · "
         f"commit `{meta['commit']}` · {meta['timestamp']}",
         "",
         "| Metric | Value | Threshold | Status |",

@@ -5,8 +5,15 @@ import pytest
 
 from rail_rag.chunking import Passage
 from rail_rag.config import Settings
-from rail_rag.vectorstore import AzureSearchStore, QdrantStore, make_store
-from tests.fakes import HashEmbedder
+from rail_rag.vectorstore import (
+    HYBRID_CANDIDATES,
+    AzureSearchStore,
+    QdrantStore,
+    SearchHit,
+    cosine,
+    make_store,
+)
+from tests.fakes import HashEmbedder, HashSparseEncoder
 
 PASSAGES = [
     Passage("tsi-noi:Annex §4.2.1#1", "tsi-noi", "NOI TSI", "Annex §4.2.1", "4.2.1. Stationary",
@@ -25,7 +32,7 @@ def embedder():
 
 @pytest.fixture
 def qdrant(embedder):
-    store = QdrantStore(":memory:")
+    store = QdrantStore(":memory:", sparse_encoder=HashSparseEncoder())
     store.reset(embedder.dim)
     store.upsert(PASSAGES, embedder.embed_documents([p.embed_text for p in PASSAGES]))
     return store
@@ -42,6 +49,24 @@ def test_qdrant_round_trips_full_passage_and_counts(qdrant, embedder):
     [hit] = qdrant.search(embedder.embed_query("parking reduced mobility"), k=1)
     assert hit.passage == PASSAGES[2]
     assert 0.0 < hit.score <= 1.0
+
+
+def test_qdrant_hybrid_finds_exact_wording_that_dense_ranks_low(embedder):
+    # Dense vectors that know nothing about the words: the query vector is closest to the
+    # NOI passage. Only BM25 can find "evacuation", which appears in the SRT passage alone.
+    store = QdrantStore(":memory:", sparse_encoder=HashSparseEncoder())
+    store.reset(2)
+    store.upsert(PASSAGES, [[1.0, 0.0], [0.0, 1.0], [0.6, 0.8]])
+    query = [0.99, 0.141]
+
+    dense = store.search(query, k=1)
+    hybrid = store.search(query, k=3, text="evacuation")
+
+    assert dense[0].passage == PASSAGES[0]
+    assert hybrid[0].passage == PASSAGES[1]  # rank 1 in BM25 + rank 3 in dense beats rank 1 + none
+    # Scores stay cosine similarities, not RRF scores: the floor in the grader still works.
+    for hit, v in zip(hybrid, [[0.0, 1.0], [1.0, 0.0], [0.6, 0.8]], strict=True):
+        assert hit.score == pytest.approx(cosine(query, v), abs=1e-6)
 
 
 def test_qdrant_reset_empties_collection(qdrant, embedder):
@@ -104,6 +129,7 @@ def test_azure_reset_creates_cosine_vector_index_with_given_dim():
     azure(index_client=idx).reset(dim=384)
     vector = next(f for f in idx.created.fields if f.name == "vector")
     assert vector.vector_search_dimensions == 384
+    assert vector.retrievable  # hybrid search needs it to score hits by cosine
     assert idx.created.vector_search.algorithms[0].parameters.metric == "cosine"
 
 
@@ -141,6 +167,47 @@ def test_azure_converts_search_score_back_to_cosine():
     assert hit.passage == PASSAGES[0]
     assert hit.score == pytest.approx(cos)
     assert client.last_query["vector_queries"][0].k_nearest_neighbors == 1
+
+
+def test_azure_hybrid_sends_text_and_vector_and_scores_by_cosine():
+    query = [0.6, 0.8]
+    rows = [
+        PASSAGES[1].to_dict() | {"@search.score": 0.0325, "vector": [0.0, 1.0]},  # RRF scores
+        PASSAGES[0].to_dict() | {"@search.score": 0.0164, "vector": [1.0, 0.0]},
+    ]
+    client = FakeSearchClient(results=rows)
+    hits = azure(client).search(query, k=2, text='on-board "PRM" units (Art. 7)?')
+
+    q = client.last_query
+    assert q["search_text"] == "on board  PRM  units  Art. 7  "  # query operators stripped
+    assert q["vector_queries"][0].k_nearest_neighbors == HYBRID_CANDIDATES
+    assert q["top"] == 2 and "vector" in q["select"]
+    assert [h.passage for h in hits] == [PASSAGES[1], PASSAGES[0]]  # Azure's fused order kept
+    assert [h.score for h in hits] == pytest.approx([0.8, 0.6])  # cosine, not RRF
+
+
+def test_stores_share_the_hybrid_contract(embedder):
+    """Same interface, same meaning of score: ranking may differ between the two BM25s, but a
+    hit's score is always cos(query, passage vector) in both stores."""
+    vectors = embedder.embed_documents([p.embed_text for p in PASSAGES])
+    query = embedder.embed_query("fire safety in tunnels")
+    qdrant = QdrantStore(":memory:", sparse_encoder=HashSparseEncoder())
+    qdrant.reset(embedder.dim)
+    qdrant.upsert(PASSAGES, vectors)
+    by_id = {p.id: v for p, v in zip(PASSAGES, vectors, strict=True)}
+    rows = [p.to_dict() | {"@search.score": 0.03, "vector": by_id[p.id]} for p in PASSAGES]
+    stores = [qdrant, azure(FakeSearchClient(results=rows))]
+
+    for store in stores:
+        hits = store.search(query, k=3, text="fire safety in tunnels")
+        assert len(hits) == 3 and all(isinstance(h, SearchHit) for h in hits)
+        for h in hits:
+            assert h.score == pytest.approx(cosine(query, by_id[h.passage.id]), abs=1e-6)
+
+
+def test_cosine_handles_unnormalised_and_zero_vectors():
+    assert cosine([3.0, 0.0], [1.0, 0.0]) == pytest.approx(1.0)
+    assert cosine([0.0, 0.0], [1.0, 0.0]) == 0.0
 
 
 def test_make_store_requires_azure_endpoint():

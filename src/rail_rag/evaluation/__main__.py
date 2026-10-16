@@ -108,6 +108,7 @@ def main(argv: list[str] | None = None) -> int:
             "timestamp": datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"),
             "n_items": len(items),
             "vector_store": s.vector_store,
+            "search_mode": s.search_mode,
             "embedding_model": s.embedding_model,
             "top_k": s.top_k,
             "min_score": s.min_score,

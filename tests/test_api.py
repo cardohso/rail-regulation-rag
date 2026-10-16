@@ -9,13 +9,13 @@ from rail_rag.graph import GraphConfig
 from rail_rag.pipeline import Pipeline
 from rail_rag.providers import LLMUnavailable
 from rail_rag.vectorstore import QdrantStore
-from tests.fakes import FakeLLM, HashEmbedder
+from tests.fakes import FakeLLM, HashEmbedder, HashSparseEncoder
 from tests.test_graph import PASSAGES
 
 
 def make_client(replies: dict) -> TestClient:
     e = HashEmbedder()
-    store = QdrantStore(":memory:")
+    store = QdrantStore(":memory:", sparse_encoder=HashSparseEncoder())
     store.reset(e.dim)
     store.upsert(PASSAGES, e.embed_documents([p.embed_text for p in PASSAGES]))
     llm = FakeLLM({prompts.REWRITE: "emergency lighting tunnels", **replies})
@@ -35,7 +35,7 @@ def test_health_reports_index_and_models():
     assert r.status_code == 200
     assert r.json() | {"version": "x"} == {
         "status": "ok", "version": "x", "passages": 3, "vector_store": "qdrant",
-        "generator": "fake:scripted",
+        "search_mode": "dense", "generator": "fake:scripted",
         "tracing": False,
     }  # fmt: skip
 
@@ -87,7 +87,7 @@ def test_ask_is_rate_limited_per_client():
     from rail_rag.ratelimit import RateLimiter
 
     e = HashEmbedder()
-    store = QdrantStore(":memory:")
+    store = QdrantStore(":memory:", sparse_encoder=HashSparseEncoder())
     store.reset(e.dim)
     store.upsert(PASSAGES, e.embed_documents([p.embed_text for p in PASSAGES]))
     llm = FakeLLM({prompts.REWRITE: "emergency lighting tunnels", **ANSWERING})

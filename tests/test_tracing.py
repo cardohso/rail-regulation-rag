@@ -9,7 +9,7 @@ from rail_rag.graph import GraphConfig
 from rail_rag.pipeline import Pipeline
 from rail_rag.tracing import LangfuseTracer, NoopTracer, make_tracer
 from rail_rag.vectorstore import QdrantStore
-from tests.fakes import FakeLLM, HashEmbedder
+from tests.fakes import FakeLLM, HashEmbedder, HashSparseEncoder
 from tests.test_graph import PASSAGES
 
 
@@ -58,7 +58,7 @@ ANSWERING = {
 
 def pipeline(tracer, replies=ANSWERING):
     e = HashEmbedder()
-    store = QdrantStore(":memory:")
+    store = QdrantStore(":memory:", sparse_encoder=HashSparseEncoder())
     store.reset(e.dim)
     store.upsert(PASSAGES, e.embed_documents([p.embed_text for p in PASSAGES]))
     cfg = GraphConfig(k=3, min_score=0.1)

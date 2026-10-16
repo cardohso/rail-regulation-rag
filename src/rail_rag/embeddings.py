@@ -45,3 +45,28 @@ class LocalEmbedder:
 
     def embed_query(self, text: str) -> list[float]:
         return self._encode([self.query_prefix + text])[0]
+
+
+class SparseEncoder(Protocol):
+    """Text -> sparse term weights (indices, values) for keyword retrieval."""
+
+    def embed_documents(self, texts: list[str]) -> list[tuple[list[int], list[float]]]: ...
+
+    def embed_query(self, text: str) -> tuple[list[int], list[float]]: ...
+
+
+class BM25Encoder:
+    """BM25 term weights via fastembed's Qdrant/bm25 (stemming + stopwords, no neural model).
+    Documents get the BM25 term-frequency part; Qdrant applies IDF at query time."""
+
+    def __init__(self, model_name: str = "Qdrant/bm25"):
+        from fastembed import SparseTextEmbedding
+
+        self.model = SparseTextEmbedding(model_name, cache_dir=str(CACHE_DIR))
+
+    def embed_documents(self, texts: list[str]) -> list[tuple[list[int], list[float]]]:
+        return [(e.indices.tolist(), e.values.tolist()) for e in self.model.embed(texts)]
+
+    def embed_query(self, text: str) -> tuple[list[int], list[float]]:
+        e = next(iter(self.model.query_embed(text)))
+        return e.indices.tolist(), e.values.tolist()

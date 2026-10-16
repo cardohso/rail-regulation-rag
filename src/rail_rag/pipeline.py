@@ -38,12 +38,13 @@ class Pipeline:
     ):
         self.llm, self.store, self.store_name = llm, store, store_name
         self.tracer = tracer or NoopTracer()
-        self.graph = build_graph(llm, embedder, store, cfg, self.tracer)
+        self.cfg = cfg or GraphConfig()
+        self.graph = build_graph(llm, embedder, store, self.cfg, self.tracer)
 
     @classmethod
     def from_settings(cls, s: Settings) -> Pipeline:
         llm = make_llm(s.generator_provider, s.api_key(s.generator_provider), s.generator_model)
-        cfg = GraphConfig(k=s.top_k, min_score=s.min_score)
+        cfg = GraphConfig(k=s.top_k, min_score=s.min_score, hybrid=s.search_mode == "hybrid")
         embedder = LocalEmbedder(s.embedding_model)
         return cls(
             llm, embedder, make_store(s), cfg, store_name=s.vector_store, tracer=make_tracer(s)
@@ -80,6 +81,7 @@ class Pipeline:
         return {
             "passages": self.store.count(),
             "vector_store": self.store_name,
+            "search_mode": "hybrid" if self.cfg.hybrid else "dense",
             "generator": self.llm.name,
             "tracing": self.tracer.enabled,
         }
