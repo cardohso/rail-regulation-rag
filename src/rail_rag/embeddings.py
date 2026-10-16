@@ -1,7 +1,7 @@
 """Local text embeddings (no API cost), run with ONNX Runtime via fastembed.
 
 Same bge-small-en-v1.5 weights as sentence-transformers (cosine 1.0000 on our corpus), without
-torch: the container image went from 2.99 GB to well under 1 GB.
+torch: the container image went from 2.99 GB to 942 MB.
 """
 
 from __future__ import annotations
