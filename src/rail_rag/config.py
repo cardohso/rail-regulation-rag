@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     top_k: int = 8
     min_score: float = 0.60
 
+    # Public demo protection (per process)
+    rate_limit_per_minute: int = 5
+    rate_limit_per_day: int = 300
+
     # Tracing (optional): Langfuse Cloud Hobby tier
     langfuse_public_key: SecretStr = SecretStr("")
     langfuse_secret_key: SecretStr = SecretStr("")

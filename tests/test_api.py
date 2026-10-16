@@ -73,3 +73,32 @@ def test_rate_limited_llm_returns_503():
     with make_client({**ANSWERING, prompts.GRADE: boom}) as client:
         r = client.post("/ask", json={"question": "tunnel lighting duration"})
     assert r.status_code == 503
+
+
+def test_ui_is_served_at_root():
+    with make_client(ANSWERING) as client:
+        r = client.get("/")
+    assert r.status_code == 200 and "text/html" in r.headers["content-type"]
+    assert "/ask" in r.text  # the page talks to the API
+
+
+def test_ask_is_rate_limited_per_client():
+    from rail_rag.api import create_app as make_app
+    from rail_rag.ratelimit import RateLimiter
+
+    e = HashEmbedder()
+    store = QdrantStore(":memory:")
+    store.reset(e.dim)
+    store.upsert(PASSAGES, e.embed_documents([p.embed_text for p in PASSAGES]))
+    llm = FakeLLM({prompts.REWRITE: "emergency lighting tunnels", **ANSWERING})
+    app = make_app(
+        Pipeline(llm, e, store, GraphConfig(k=3, min_score=0.1)),
+        RateLimiter(per_client_per_minute=2, per_day=100),
+    )
+    with TestClient(app) as client:
+        codes = [
+            client.post("/ask", json={"question": "tunnel lighting"},
+                        headers={"x-forwarded-for": ip}).status_code
+            for ip in ["1.1.1.1", "1.1.1.1", "1.1.1.1", "2.2.2.2"]
+        ]  # fmt: skip
+    assert codes == [200, 200, 429, 200]

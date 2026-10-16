@@ -1,0 +1,16 @@
+# Never send secrets or local state into the build context
+.env
+.env.*
+.git
+.github
+.venv
+**/__pycache__
+.pytest_cache
+.ruff_cache
+data/raw
+data/index
+eval
+tests
+docs
+*.md
+!README.md

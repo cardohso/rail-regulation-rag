@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EU Rail Regulation Assistant</title>
+<meta name="description" content="Ask questions about EU railway interoperability rules (TSIs). Answers cite the exact passage; out-of-scope questions are refused.">
+<style>
+  :root {
+    --bg: #f7f7f5; --surface: #ffffff; --text: #1d1d1b; --muted: #5f6368; --border: #dcdcd7;
+    --accent: #0b5cad; --accent-text: #ffffff; --refuse-bg: #fff6e5; --refuse-border: #e8b04a;
+    --mark-bg: #e6eef8; --radius: 10px;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141517; --surface: #1d1f22; --text: #e8e8e6; --muted: #a0a4a8; --border: #34373b;
+      --accent: #6aa7f0; --accent-text: #0e1116; --refuse-bg: #2b2414; --refuse-border: #a77b2b;
+      --mark-bg: #1f2c3d;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.55; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 48px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  .lede { color: var(--muted); margin: 0 0 24px; }
+  form { display: flex; flex-direction: column; gap: 10px; }
+  textarea {
+    width: 100%; min-height: 84px; resize: vertical; padding: 12px; font: inherit;
+    color: var(--text); background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  textarea:focus-visible, button:focus-visible, a:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  button.primary {
+    padding: 10px 18px; font: inherit; font-weight: 600; border: 0; border-radius: var(--radius);
+    background: var(--accent); color: var(--accent-text); cursor: pointer;
+  }
+  button.primary:disabled { opacity: .6; cursor: progress; }
+  .examples { margin: 18px 0 0; }
+  .examples p { margin: 0 0 6px; color: var(--muted); font-size: .9rem; }
+  button.chip {
+    font: inherit; font-size: .88rem; padding: 6px 10px; border-radius: 999px; cursor: pointer;
+    background: var(--surface); color: var(--text); border: 1px solid var(--border);
+  }
+  #status { color: var(--muted); font-size: .92rem; min-height: 1.4em; margin: 14px 0 0; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 18px; margin-top: 16px;
+  }
+  .card.refused { background: var(--refuse-bg); border-color: var(--refuse-border); }
+  .answer { font-size: 1.05rem; margin: 0; white-space: pre-wrap; }
+  .answer a.cite {
+    font-size: .8rem; font-weight: 600; text-decoration: none; padding: 0 4px; margin: 0 1px;
+    border-radius: 4px; background: var(--mark-bg); color: var(--accent);
+  }
+  h2 { font-size: 1rem; margin: 22px 0 6px; }
+  ol.citations { list-style: none; padding: 0; margin: 0; }
+  ol.citations li { padding: 12px 0; border-top: 1px solid var(--border); }
+  ol.citations li:first-child { border-top: 0; }
+  .cite-head { display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+  .cite-n { font-weight: 700; color: var(--accent); }
+  .cite-doc { font-weight: 600; }
+  .cite-meta { color: var(--muted); font-size: .88rem; }
+  details { margin-top: 6px; }
+  summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
+  blockquote {
+    margin: 8px 0 0; padding: 8px 12px; border-left: 3px solid var(--border);
+    color: var(--text); font-size: .92rem; white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  a { color: var(--accent); }
+  .meta { color: var(--muted); font-size: .82rem; margin-top: 12px; overflow-wrap: anywhere; }
+  footer { color: var(--muted); font-size: .85rem; margin-top: 40px; }
+  footer p { margin: 4px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>EU Rail Regulation Assistant</h1>
+  <p class="lede">
+    Ask about the EU rail Interoperability Directive and six TSIs (signalling, accessibility,
+    energy, tunnel safety, noise, operations). Every answer cites the exact passage. If the
+    sources don't cover the question, it says so instead of guessing.
+  </p>
+
+  <form id="ask-form">
+    <label for="q" class="cite-meta">Your question</label>
+    <textarea id="q" name="question" maxlength="500" required
+      placeholder="e.g. What is the stationary noise limit for an EMU?"></textarea>
+    <div class="row"><button class="primary" id="ask-btn" type="submit">Ask</button></div>
+  </form>
+
+  <div class="examples">
+    <p>Try one:</p>
+    <div class="row" id="examples">
+      <button type="button" class="chip">How many wheelchair spaces must a 250 m long passenger unit have?</button>
+      <button type="button" class="chip">What minimum clear opening must the doors between a tunnel escape walkway and the safe area have?</button>
+      <button type="button" class="chip">What GDPR obligations apply to railway undertakings that process passenger personal data?</button>
+    </div>
+  </div>
+
+  <p id="status" role="status" aria-live="polite"></p>
+  <section id="result" aria-live="polite"></section>
+
+  <footer>
+    <p>Not legal advice. Consolidated EUR-Lex texts are documentation tools with no legal effect;
+      only the Official Journal is authentic. Source: EUR-Lex, © European Union, 1998–2026.</p>
+    <p><a href="https://github.com/cardohso/rail-regulation-rag">Source code, evaluation results and design notes on GitHub</a></p>
+  </footer>
+</main>
+
+<script>
+const form = document.getElementById("ask-form");
+const input = document.getElementById("q");
+const button = document.getElementById("ask-btn");
+const statusEl = document.getElementById("status");
+const result = document.getElementById("result");
+
+document.querySelectorAll("#examples .chip").forEach((chip) => {
+  chip.addEventListener("click", () => { input.value = chip.textContent; form.requestSubmit(); });
+});
+
+function el(tag, attrs = {}, children = []) {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "text") node.textContent = v; else node.setAttribute(k, v);
+  }
+  for (const child of [].concat(children)) node.append(child);
+  return node;
+}
+
+// Turn "[2]" markers into links to the matching citation, without using innerHTML.
+function renderAnswer(text) {
+  const p = el("p", { class: "answer" });
+  let last = 0;
+  for (const m of text.matchAll(/\[(\d+)\]/g)) {
+    p.append(text.slice(last, m.index));
+    p.append(el("a", { class: "cite", href: `#cite-${m[1]}`, text: `[${m[1]}]` }));
+    last = m.index + m[0].length;
+  }
+  p.append(text.slice(last));
+  return p;
+}
+
+const REASONS = {
+  low_retrieval_score: "nothing in the indexed regulations is close to this question",
+  no_relevant_passages: "the closest passages don't address this question",
+  insufficient_context: "the retrieved passages don't contain the answer",
+  no_citations: "the draft answer couldn't be tied to a source passage, so it was withheld",
+};
+
+function render(data) {
+  result.replaceChildren();
+  const card = el("div", { class: data.refused ? "card refused" : "card" });
+  card.append(renderAnswer(data.answer));
+  if (data.refused && REASONS[data.refusal_reason]) {
+    card.append(el("p", { class: "meta", text: `Why: ${REASONS[data.refusal_reason]}.` }));
+  }
+  if (data.citations.length) {
+    card.append(el("h2", { text: "Sources" }));
+    const list = el("ol", { class: "citations" });
+    for (const c of data.citations) {
+      list.append(el("li", { id: `cite-${c.n}` }, [
+        el("div", { class: "cite-head" }, [
+          el("span", { class: "cite-n", text: `[${c.n}]` }),
+          el("span", { class: "cite-doc", text: c.document }),
+          el("span", { class: "cite-meta", text: `${c.section} · ${c.heading}` }),
+        ]),
+        el("details", {}, [
+          el("summary", { text: "Show passage" }),
+          el("blockquote", { text: c.passage }),
+        ]),
+        el("a", { href: c.url, target: "_blank", rel: "noopener", class: "cite-meta",
+                  text: "Open on EUR-Lex ↗" }),
+      ]));
+    }
+    card.append(list);
+  }
+  card.append(el("p", { class: "meta", text: `Trace id: ${data.trace_id}` }));
+  result.append(card);
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const question = input.value.trim();
+  if (question.length < 3) { statusEl.textContent = "Please type a longer question."; return; }
+  button.disabled = true;
+  statusEl.textContent = "Searching the regulations…";
+  const slow = setTimeout(() => {
+    statusEl.textContent = "Still working. A free demo that has been idle can take ~30 s to wake up.";
+  }, 6000);
+  try {
+    const res = await fetch("/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      statusEl.textContent = data.detail && typeof data.detail === "string"
+        ? data.detail : `Request failed (HTTP ${res.status}).`;
+      return;
+    }
+    statusEl.textContent = "";
+    render(data);
+  } catch (err) {
+    statusEl.textContent = "Couldn't reach the server. Check your connection and try again.";
+  } finally {
+    clearTimeout(slow);
+    button.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

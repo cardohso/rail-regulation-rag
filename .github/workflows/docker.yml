@@ -1,0 +1,50 @@
+name: docker
+
+# Builds the production image and smoke-tests it: container starts as non-root, /health is OK,
+# the UI is served, and Docker's own HEALTHCHECK reports healthy. No real API keys are used.
+on:
+  push:
+    branches: [main]
+    paths: [Dockerfile, .dockerignore, pyproject.toml, uv.lock, "src/**", "data/processed/**", "data/sources.yaml", .github/workflows/docker.yml]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build image
+        run: docker build -t rail-rag:ci .
+
+      - name: Start container
+        run: |
+          docker run -d --name app -p 7860:7860 \
+            -e GEMINI_API_KEY=dummy-not-used -e VECTOR_STORE=qdrant rail-rag:ci
+
+      - name: Wait for /health
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf localhost:7860/health; then echo; exit 0; fi
+            sleep 2
+          done
+          docker logs app; exit 1
+
+      - name: Check UI, non-root user and Docker healthcheck
+        run: |
+          curl -sf localhost:7860/ | grep -q "EU Rail Regulation Assistant"
+          test "$(docker exec app id -u)" = "1000"
+          for i in $(seq 1 30); do
+            s=$(docker inspect -f '{{.State.Health.Status}}' app)
+            echo "health: $s"; [ "$s" = healthy ] && exit 0; sleep 5
+          done
+          exit 1
+
+      - name: Image size
+        if: always()
+        run: docker image ls rail-rag:ci --format '{{.Repository}}:{{.Tag}} {{.Size}}'
