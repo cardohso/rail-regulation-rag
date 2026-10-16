@@ -7,7 +7,7 @@
 A question-answering assistant over EU railway interoperability law: the Interoperability Directive and six Technical Specifications for Interoperability (TSIs). Every answer cites the exact passage it comes from, and the assistant refuses when its sources don't cover the question. An evaluation harness runs on GitHub Actions and fails the build when answer quality, grounding or refusal behaviour drops below fixed thresholds.
 
 **Live demo:** <https://rail-rag.calmcliff-0073b8b6.switzerlandnorth.azurecontainerapps.io>
-The demo scales to zero when idle, so the first request after a pause takes about COLD_START.
+The demo scales to zero when idle, so the first request after a pause is slower: 6.7 s, measured once after 12 minutes idle (1.0 s once warm).
 
 **Stack:** Python 3.12 · LangGraph · FastAPI · Azure AI Search (with a local Qdrant fallback) · ONNX `bge-small-en-v1.5` embeddings · Gemini (generator) · `gpt-oss-120b` via Groq (judge) · RAGAS · Langfuse · Docker · Azure Container Apps · GitHub Actions. Everything runs on free tiers.
 
@@ -151,7 +151,7 @@ uv run --group eval python -m rail_rag.evaluation --judges groq,gemini # second 
 - **Parsing.** Figures are dropped. Merged table cells lose their value (e.g. one column of NOI Table 2).
 - **Dense-only retrieval** misses some exact-wording questions (q13).
 - **Small evaluation.** 20 questions with one reviewer. Judge scores carry noise (see q09).
-- **Free tiers.** Rate limits cause occasional long waits. The demo has a daily question budget, and cold starts take about COLD_START. The rate limiter is in-memory, so it's correct only for a single replica.
+- **Free tiers.** Rate limits cause occasional long waits. The demo has a daily question budget, and cold starts add a few seconds (6.7 s measured once). The rate limiter is in-memory, so it's correct only for a single replica.
 
 **Next steps:**
 1. Hybrid search (BM25 + vectors) in Azure AI Search for the q13-type misses.
