@@ -2,6 +2,7 @@ name: docker
 
 # Builds the production image and smoke-tests it: container starts as non-root, /health is OK,
 # the UI is served, and Docker's own HEALTHCHECK reports healthy. No real API keys are used.
+# On main, the tested image is pushed to GitHub Container Registry (the deploy source).
 on:
   push:
     branches: [main]
@@ -11,6 +12,7 @@ on:
 
 permissions:
   contents: read
+  packages: write  # push to ghcr.io (main only)
 
 jobs:
   build-and-smoke-test:
@@ -48,3 +50,16 @@ jobs:
       - name: Image size
         if: always()
         run: docker image ls rail-rag:ci --format '{{.Repository}}:{{.Tag}} {{.Size}}'
+
+      - name: Push tested image to ghcr.io
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/rail-regulation-rag
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          tag="sha-${GITHUB_SHA::7}"
+          docker tag rail-rag:ci "$IMAGE:$tag"
+          docker tag rail-rag:ci "$IMAGE:latest"
+          docker push "$IMAGE:$tag"
+          docker push "$IMAGE:latest"
+          echo "pushed $IMAGE:$tag" >> "$GITHUB_STEP_SUMMARY"

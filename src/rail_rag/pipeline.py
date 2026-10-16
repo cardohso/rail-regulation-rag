@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 
 from rail_rag.citations import Citation, format_citations
 from rail_rag.config import Settings
-from rail_rag.embeddings import Embedder, SentenceTransformerEmbedder
+from rail_rag.embeddings import Embedder, LocalEmbedder
 from rail_rag.graph import GraphConfig, build_graph
 from rail_rag.providers import LLM, make_llm
 from rail_rag.tracing import NoopTracer, Tracer, make_tracer
@@ -44,7 +44,7 @@ class Pipeline:
     def from_settings(cls, s: Settings) -> Pipeline:
         llm = make_llm(s.generator_provider, s.api_key(s.generator_provider), s.generator_model)
         cfg = GraphConfig(k=s.top_k, min_score=s.min_score)
-        embedder = SentenceTransformerEmbedder(s.embedding_model)
+        embedder = LocalEmbedder(s.embedding_model)
         return cls(
             llm, embedder, make_store(s), cfg, store_name=s.vector_store, tracer=make_tracer(s)
         )

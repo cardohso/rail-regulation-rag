@@ -23,7 +23,7 @@ import yaml
 
 from rail_rag import paths
 from rail_rag.config import get_settings
-from rail_rag.embeddings import SentenceTransformerEmbedder
+from rail_rag.embeddings import LocalEmbedder
 from rail_rag.evaluation.judge import RagasJudge
 from rail_rag.evaluation.metrics import aggregate, gate, per_document
 from rail_rag.evaluation.report import render
@@ -70,7 +70,7 @@ def main(argv: list[str] | None = None) -> int:
         )
     items = load_golden(args.golden)
     thresholds = yaml.safe_load(args.thresholds.read_text(encoding="utf-8"))["metrics"]
-    embedder = SentenceTransformerEmbedder(s.embedding_model)
+    embedder = LocalEmbedder(s.embedding_model)
 
     if args.answers:
         answers = json.loads(args.answers.read_text(encoding="utf-8"))

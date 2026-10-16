@@ -1,6 +1,9 @@
 # Single container: FastAPI API + UI, local embeddings, and a baked-in Qdrant index as fallback.
 # Runs as a non-root user with uid 1000 (what Hugging Face Spaces expects).
 FROM python:3.12-slim
+LABEL org.opencontainers.image.source="https://github.com/cardohso/rail-regulation-rag" \
+      org.opencontainers.image.description="Cited Q&A over EU railway TSIs, with an eval gate in CI" \
+      org.opencontainers.image.licenses="MIT"
 
 COPY --from=ghcr.io/astral-sh/uv:0.12.23 /uv /usr/local/bin/uv
 
@@ -8,13 +11,14 @@ ENV PYTHONUNBUFFERED=1 \
     UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     HF_HOME=/home/app/.cache/huggingface \
+    FASTEMBED_CACHE_PATH=/home/app/.cache/fastembed \
     HF_HUB_DISABLE_TELEMETRY=1
 
 RUN useradd --create-home --uid 1000 app
 USER app
 WORKDIR /home/app/rail-rag
 
-# Dependencies first, so code changes don't reinstall torch (CPU wheels on Linux, see pyproject).
+# Dependencies first, so code changes don't reinstall them.
 COPY --chown=app pyproject.toml uv.lock README.md ./
 RUN uv sync --frozen --no-dev --no-install-project
 

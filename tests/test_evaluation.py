@@ -165,7 +165,7 @@ def golden(tmp_path):
 def run_cli(monkeypatch, tmp_path, golden, thresholds, *extra):
     monkeypatch.setattr(cli.Pipeline, "from_settings", classmethod(lambda cls, s: fake_pipeline()))
     monkeypatch.setattr(cli, "RagasJudge", FakeJudge)
-    monkeypatch.setattr(cli, "SentenceTransformerEmbedder", lambda name: HashEmbedder())
+    monkeypatch.setattr(cli, "LocalEmbedder", lambda name: HashEmbedder())
     th = tmp_path / "th.yaml"
     th.write_text(yaml.safe_dump({"metrics": thresholds}))
     out, summary = tmp_path / "run.json", tmp_path / "summary.md"

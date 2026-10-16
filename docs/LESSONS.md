@@ -107,3 +107,15 @@ Two things limited the damage:
 2. **The deploy script failed before sending anything.** Space creation runs before the step that copies secrets, so no keys left the machine.
 
 *Takeaway:* check a free tier's current terms at the start of a project, not at deploy time. Pricing pages change faster than tutorials.
+
+## 9. Swapping torch for ONNX: exact parity, one silent trap
+
+The 2.99 GB image was mostly torch, which only ran a 33M-parameter embedding model. Moving to `fastembed` (ONNX Runtime, the same `bge-small-en-v1.5` weights) removed torch, sentence-transformers and transformers from the runtime.
+
+**Parity, measured rather than assumed:**
+- cosine(old, new) = 1.0000 (minimum) on 200 passages and all 20 golden questions;
+- re-indexing Qdrant and Azure gave identical top-8 rankings for all 20 CI eval queries, with a maximum score difference of 0.0005.
+
+**The trap:** `TextEmbedding.query_embed()` does **not** add bge's query instruction, which dropped query similarity to 0.956. That's enough to reorder results quietly without failing anything. The embedder prepends the instruction itself, and the parity check above is what caught it.
+
+**Cost of the swap:** indexing all 1,589 passages on a laptop CPU went from 110 s to 191 s. It's a one-off at image build time; query embedding stays in milliseconds.

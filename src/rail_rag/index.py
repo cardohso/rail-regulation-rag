@@ -10,7 +10,7 @@ import time
 
 from rail_rag.chunking import load_passages
 from rail_rag.config import get_settings
-from rail_rag.embeddings import SentenceTransformerEmbedder
+from rail_rag.embeddings import LocalEmbedder
 from rail_rag.vectorstore import make_store
 
 
@@ -25,7 +25,7 @@ def main() -> None:
 
     passages = load_passages()
     t0 = time.perf_counter()
-    embedder = SentenceTransformerEmbedder(settings.embedding_model)
+    embedder = LocalEmbedder(settings.embedding_model)
     vectors = embedder.embed_documents([p.embed_text for p in passages])
     t1 = time.perf_counter()
 

@@ -10,6 +10,7 @@ dependencies = [
     "azure-search-documents>=12.0.0",
     "beautifulsoup4>=4.15.0",
     "fastapi>=0.143.2",
+    "fastembed>=0.9.0",
     "google-genai>=2.31.0",
     "groq>=1.7.0",
     "httpx>=0.28.1",
@@ -19,8 +20,6 @@ dependencies = [
     "pydantic-settings>=2.16.0",
     "pyyaml>=6.0.3",
     "qdrant-client>=1.19.1",
-    "sentence-transformers>=6.1.0",
-    "torch>=2.14.1",
     "uvicorn[standard]>=0.54.0",
 ]
 
@@ -57,11 +56,3 @@ select = ["E", "F", "I", "B", "UP", "SIM"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
-
-[tool.uv.sources]
-torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
-
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-explicit = true
