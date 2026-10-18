@@ -6,7 +6,9 @@
 
 A question-answering assistant over EU railway interoperability law: the Interoperability Directive and six Technical Specifications for Interoperability (TSIs). Every answer cites the exact passage it comes from, and the assistant refuses when its sources don't cover the question. An evaluation harness runs on GitHub Actions and fails the build when answer quality, grounding or refusal behaviour drops below fixed thresholds.
 
-**Live demo:** <https://rail-rag.calmcliff-0073b8b6.switzerlandnorth.azurecontainerapps.io>
+**Live demo:** <https://rail-rag.calmcliff-0073b8b6.switzerlandnorth.azurecontainerapps.io>  
+**Demo video (90 s):** <https://youtu.be/CVuVkNnhasc>
+
 The demo scales to zero when idle, so the first request after a pause is slower: 6.7 s, measured once after 12 minutes idle (1.0 s once warm).
 
 **Stack:** Python 3.12 · LangGraph · FastAPI · Azure AI Search hybrid search, BM25 + vectors (with a local Qdrant fallback) · ONNX `bge-small-en-v1.5` embeddings · Gemini (generator) · `gpt-oss-120b` via Groq (judge) · RAGAS · Langfuse · Docker · Azure Container Apps · GitHub Actions. Everything runs on free tiers.
