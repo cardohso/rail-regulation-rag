@@ -11,7 +11,7 @@ A question-answering assistant over EU railway interoperability law: the Interop
 
 The demo scales to zero when idle, so the first request after a pause is slower: 6.7 s, measured once after 12 minutes idle (1.0 s once warm).
 
-**Stack:** Python 3.12 · LangGraph · FastAPI · Azure AI Search hybrid search, BM25 + vectors (with a local Qdrant fallback) · ONNX `bge-small-en-v1.5` embeddings · Gemini (generator) · `gpt-oss-120b` via Groq (judge) · RAGAS · Langfuse · Docker · Azure Container Apps · GitHub Actions. Everything runs on free tiers.
+**Stack:** Python 3.12 · LangGraph · FastAPI · Azure AI Search hybrid search, BM25 + vectors (with a local Qdrant fallback) · ONNX `bge-small-en-v1.5` embeddings · Gemini (generator) · `gpt-oss-120b` via Groq (judge) · RAGAS · Langfuse · Docker · Azure Container Apps · GitHub Actions. Runs on free tiers plus a few cents of Azure for Students credit: €0.18 in the first 3 days, mostly setup traffic. No paid plan or card is involved.
 
 ---
 
@@ -186,7 +186,7 @@ uv run --group eval python -m rail_rag.evaluation --judges groq,gemini # second 
 - **The LLM query rewrite is not deterministic**, even at temperature 0. Retrieval for the same question can differ between runs (q13 did, [lesson 10](docs/LESSONS.md)).
 - **Hybrid mode is not yet gated in CI**, and it moved one context-recall result the wrong way (q05). See [above](#hybrid-retrieval-before-and-after).
 - **Small evaluation.** 20 questions with one reviewer. Judge scores carry noise (see q09).
-- **Free tiers.** Rate limits cause occasional long waits. The demo has a daily question budget, and cold starts add a few seconds (6.7 s measured once). The rate limiter is in-memory, so it's correct only for a single replica.
+- **Free tiers and student credit.** Azure isn't strictly zero-cost here: AI Search bills a small serverless-compute meter even on the Free SKU, and the Container Apps free grant doesn't appear to apply to this express environment. A €5/month budget alert guards the credit. Rate limits cause occasional long waits. The demo has a daily question budget, and cold starts add a few seconds (6.7 s measured once). The rate limiter is in-memory, so it's correct only for a single replica.
 
 **Next steps:**
 1. Pass the gated CI eval in hybrid mode, then deploy it. The run is waiting on free-tier quotas.
