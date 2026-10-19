@@ -1,0 +1,10 @@
+# Retrieval gate for pull requests, run by .github/workflows/retrieval-gate.yml:
+#   uv run python eval/goldpass/retrieval_records.py        # no LLM, no keys
+#   goldpass run --config eval/goldpass/goldpass.yaml       # or uses: cardohso/goldpass@v0
+golden: golden.jsonl
+thresholds: thresholds.yaml
+baseline: baseline.json
+out: results/retrieval-gate.json
+system:
+  type: replay
+  path: records.json

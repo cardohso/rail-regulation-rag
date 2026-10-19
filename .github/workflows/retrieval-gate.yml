@@ -1,0 +1,72 @@
+name: retrieval-gate
+
+# A free, deterministic check on every pull request: do the 16 answerable golden questions still
+# find their gold passages? No LLM and no API keys. It runs the pipeline's own retrieval step with
+# the rewritten queries saved in eval/results/latest.json, then gates the result with goldpass
+# (https://github.com/cardohso/goldpass) against the thresholds and baseline in eval/goldpass/.
+#
+# It catches changes to chunking, the index, the embedding model, hybrid search and k. The live
+# LLM eval (eval.yml) still covers prompts, grading, grounding and refusals.
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: retrieval-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  retrieval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      VECTOR_STORE: qdrant  # the index is built locally from the committed corpus
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - run: uv sync --frozen
+
+      - name: Cache embedding model
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cache/huggingface
+            ~/.cache/fastembed
+          key: hf-${{ hashFiles('src/rail_rag/config.py') }}
+
+      - name: Cache vector index
+        id: index-cache
+        uses: actions/cache@v6
+        with:
+          path: data/index
+          key: index-${{ hashFiles('data/processed/**', 'src/rail_rag/chunking.py', 'src/rail_rag/embeddings.py', 'src/rail_rag/vectorstore.py', 'src/rail_rag/config.py') }}
+
+      - name: Build vector index
+        if: steps.index-cache.outputs.cache-hit != 'true'
+        run: uv run python -m rail_rag.index
+
+      - name: Retrieve for every golden question
+        run: uv run python eval/goldpass/retrieval_records.py
+
+      - name: Gate with goldpass
+        uses: cardohso/goldpass@v0
+        with:
+          config: eval/goldpass/goldpass.yaml
+          cache-judge: "false"  # no LLM judge here, so no judge cache to keep
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: retrieval-gate-results
+          path: eval/goldpass/results/
+          if-no-files-found: ignore

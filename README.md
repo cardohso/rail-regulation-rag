@@ -163,6 +163,25 @@ uv run --group eval python -m rail_rag.evaluation --judges groq,gemini # second 
 - **Thresholds** are in [`eval/thresholds.yaml`](eval/thresholds.yaml). They were set *before* the first real run, and changing them requires a written justification.
 - **In CI**, `eval.yml` runs on pull requests and manual dispatch only, not on every push, to stay inside free-tier rate limits. It writes the results table to the job summary and uploads the full results.
 
+### A free retrieval check on every pull request
+
+`retrieval-gate.yml` runs on pull requests with no LLM and no API keys. It runs the pipeline's own retrieval step for the 16 answerable golden questions, using the rewritten queries saved in `eval/results/latest.json`, and gates the result with [goldpass](https://github.com/cardohso/goldpass) (`uses: cardohso/goldpass@v0`) against [`eval/goldpass/thresholds.yaml`](eval/goldpass/thresholds.yaml) and a committed baseline. It measures the configured search mode (hybrid by default). Because the queries are fixed and retrieval is deterministic, a change in the score can only come from chunking, the index, the embedding model, hybrid search or `k`.
+
+```bash
+uv run python eval/goldpass/retrieval_records.py                                   # about 4 s, local index
+uvx --from git+https://github.com/cardohso/goldpass@v0.1.0 goldpass run --config eval/goldpass/goldpass.yaml
+```
+
+Checked locally against the committed baseline (recall@8 1.00 and hit@8 1.00 over 16 questions; recall matches `eval/results/retrieval.json`):
+
+| Change | recall@8 | hit@8 | Gate |
+|---|---|---|---|
+| none | 1.00 | 1.00 | passes |
+| `TOP_K=3` | 0.85 | 0.94 | fails: recall, hit and MRR dropped |
+| `SEARCH_MODE=dense` | 0.91 | 0.94 | fails: names `q08` and `q13` |
+
+The dense-mode row rediscovers the finding above: without hybrid search, `q13`'s gold passage is not retrieved. What this gate does *not* cover: the rewrite prompt, grading, grounding and refusals (the live eval does). Its report also shows an "Answered rate" of 1.00 and an "it could be noise" hint; both are artefacts of a run with no generation and no sampling noise, and can be ignored here.
+
 ---
 
 ## Design decisions

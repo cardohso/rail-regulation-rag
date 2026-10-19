@@ -39,3 +39,8 @@ eval/results/*
 .claude/
 !eval/results/dual-judge.json
 !eval/results/dual-judge.md
+
+# goldpass retrieval gate: records are generated, the baseline is committed on purpose
+eval/goldpass/records.json
+eval/goldpass/results/
+.goldpass/  # goldpass judge cache
