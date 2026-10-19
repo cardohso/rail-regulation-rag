@@ -1,0 +1,556 @@
+{
+  "goldpass_version": "0.2.0",
+  "meta": {
+    "system": "rail-rag retrieval (hybrid, k=8, BAAI/bge-small-en-v1.5) (replayed from records.json)",
+    "golden": "golden.jsonl",
+    "n_items": 16,
+    "k": null,
+    "generator": {
+      "model": null,
+      "family": null
+    },
+    "judge_free": true,
+    "allow_same_family": false,
+    "commit": "b71befc",
+    "timestamp": "2026-10-19T20:14:12Z"
+  },
+  "metrics": {
+    "faithfulness": {
+      "value": null,
+      "n": 0
+    },
+    "answer_relevancy": {
+      "value": null,
+      "n": 0
+    },
+    "precision_at_k": {
+      "value": 0.1641,
+      "n": 16
+    },
+    "recall_at_k": {
+      "value": 1.0,
+      "n": 16
+    },
+    "context_precision": {
+      "value": 0.7951,
+      "n": 16
+    },
+    "mrr": {
+      "value": 0.8229,
+      "n": 16
+    },
+    "hit_rate": {
+      "value": 1.0,
+      "n": 16
+    },
+    "retrieved_recall": {
+      "value": null,
+      "n": 0
+    },
+    "grounding": {
+      "value": null,
+      "n": 0
+    },
+    "answered_rate": {
+      "value": null,
+      "n": 0
+    },
+    "refusal_rate": {
+      "value": null,
+      "n": 0
+    },
+    "errors": {
+      "value": 0.0,
+      "n": 0
+    }
+  },
+  "by_tag": {
+    "wrong-document": {
+      "faithfulness": {
+        "value": null,
+        "n": 0
+      },
+      "answer_relevancy": {
+        "value": null,
+        "n": 0
+      },
+      "precision_at_k": {
+        "value": 0.125,
+        "n": 3
+      },
+      "recall_at_k": {
+        "value": 1.0,
+        "n": 3
+      },
+      "context_precision": {
+        "value": 0.8333,
+        "n": 3
+      },
+      "mrr": {
+        "value": 0.8333,
+        "n": 3
+      },
+      "hit_rate": {
+        "value": 1.0,
+        "n": 3
+      },
+      "retrieved_recall": {
+        "value": null,
+        "n": 0
+      },
+      "grounding": {
+        "value": null,
+        "n": 0
+      },
+      "answered_rate": {
+        "value": null,
+        "n": 0
+      },
+      "refusal_rate": {
+        "value": null,
+        "n": 0
+      },
+      "errors": {
+        "value": 0.0,
+        "n": 0
+      }
+    }
+  },
+  "by_document": [
+    {
+      "doc_id": "iop-directive",
+      "questions": 3,
+      "answered": 3,
+      "grounding": {
+        "value": null,
+        "n": 0
+      },
+      "cited_other_docs": []
+    },
+    {
+      "doc_id": "tsi-ccs",
+      "questions": 1,
+      "answered": 1,
+      "grounding": {
+        "value": null,
+        "n": 0
+      },
+      "cited_other_docs": []
+    },
+    {
+      "doc_id": "tsi-ene",
+      "questions": 1,
+      "answered": 1,
+      "grounding": {
+        "value": null,
+        "n": 0
+      },
+      "cited_other_docs": []
+    },
+    {
+      "doc_id": "tsi-noi",
+      "questions": 2,
+      "answered": 2,
+      "grounding": {
+        "value": null,
+        "n": 0
+      },
+      "cited_other_docs": []
+    },
+    {
+      "doc_id": "tsi-ope",
+      "questions": 3,
+      "answered": 3,
+      "grounding": {
+        "value": null,
+        "n": 0
+      },
+      "cited_other_docs": []
+    },
+    {
+      "doc_id": "tsi-prm",
+      "questions": 2,
+      "answered": 2,
+      "grounding": {
+        "value": null,
+        "n": 0
+      },
+      "cited_other_docs": []
+    },
+    {
+      "doc_id": "tsi-srt",
+      "questions": 4,
+      "answered": 4,
+      "grounding": {
+        "value": null,
+        "n": 0
+      },
+      "cited_other_docs": []
+    }
+  ],
+  "judges": [],
+  "skipped": {
+    "refusals not reported: answered_rate skipped": 16,
+    "citations not reported: grounding skipped": 16
+  },
+  "items": [
+    {
+      "id": "q01",
+      "expected": "answer",
+      "tags": [],
+      "source_doc_ids": [
+        "tsi-noi"
+      ],
+      "refused": null,
+      "cited_docs": [],
+      "metrics": {
+        "precision_at_k": 0.125,
+        "recall_at_k": 1.0,
+        "context_precision": 1.0,
+        "mrr": 1.0,
+        "hit_rate": true
+      },
+      "notes": [
+        "refusals not reported: answered_rate skipped",
+        "citations not reported: grounding skipped"
+      ],
+      "error": null
+    },
+    {
+      "id": "q02",
+      "expected": "answer",
+      "tags": [],
+      "source_doc_ids": [
+        "tsi-noi"
+      ],
+      "refused": null,
+      "cited_docs": [],
+      "metrics": {
+        "precision_at_k": 0.125,
+        "recall_at_k": 1.0,
+        "context_precision": 1.0,
+        "mrr": 1.0,
+        "hit_rate": true
+      },
+      "notes": [
+        "refusals not reported: answered_rate skipped",
+        "citations not reported: grounding skipped"
+      ],
+      "error": null
+    },
+    {
+      "id": "q03",
+      "expected": "answer",
+      "tags": [],
+      "source_doc_ids": [
+        "tsi-srt"
+      ],
+      "refused": null,
+      "cited_docs": [],
+      "metrics": {
+        "precision_at_k": 0.125,
+        "recall_at_k": 1.0,
+        "context_precision": 1.0,
+        "mrr": 1.0,
+        "hit_rate": true
+      },
+      "notes": [
+        "refusals not reported: answered_rate skipped",
+        "citations not reported: grounding skipped"
+      ],
+      "error": null
+    },
+    {
+      "id": "q04",
+      "expected": "answer",
+      "tags": [],
+      "source_doc_ids": [
+        "tsi-srt"
+      ],
+      "refused": null,
+      "cited_docs": [],
+      "metrics": {
+        "precision_at_k": 0.125,
+        "recall_at_k": 1.0,
+        "context_precision": 1.0,
+        "mrr": 1.0,
+        "hit_rate": true
+      },
+      "notes": [
+        "refusals not reported: answered_rate skipped",
+        "citations not reported: grounding skipped"
+      ],
+      "error": null
+    },
+    {
+      "id": "q05",
+      "expected": "answer",
+      "tags": [],
+      "source_doc_ids": [
+        "tsi-srt"
+      ],
+      "refused": null,
+      "cited_docs": [],
+      "metrics": {
+        "precision_at_k": 0.25,
+        "recall_at_k": 1.0,
+        "context_precision": 0.75,
+        "mrr": 1.0,
+        "hit_rate": true
+      },
+      "notes": [
+        "refusals not reported: answered_rate skipped",
+        "citations not reported: grounding skipped"
+      ],
+      "error": null
+    },
+    {
+      "id": "q06",
+      "expected": "answer",
+      "tags": [],
+      "source_doc_ids": [
+        "tsi-prm"
+      ],
+      "refused": null,
+      "cited_docs": [],
+      "metrics": {
+        "precision_at_k": 0.125,
+        "recall_at_k": 1.0,
+        "context_precision": 0.5,
+        "mrr": 0.5,
+        "hit_rate": true
+      },
+      "notes": [
+        "refusals not reported: answered_rate skipped",
+        "citations not reported: grounding skipped"
+      ],
+      "error": null
+    },
+    {
+      "id": "q07",
+      "expected": "answer",
+      "tags": [],
+      "source_doc_ids": [
+        "tsi-prm"
+      ],
+      "refused": null,
+      "cited_docs": [],
+      "metrics": {
+        "precision_at_k": 0.125,
+        "recall_at_k": 1.0,
+        "context_precision": 1.0,
+        "mrr": 1.0,
+        "hit_rate": true
+      },
+      "notes": [
+        "refusals not reported: answered_rate skipped",
+        "citations not reported: grounding skipped"
+      ],
+      "error": null
+    },
+    {
+      "id": "q08",
+      "expected": "answer",
+      "tags": [],
+      "source_doc_ids": [
+        "tsi-ene"
+      ],
+      "refused": null,
+      "cited_docs": [],
+      "metrics": {
+        "precision_at_k": 0.25,
+        "recall_at_k": 1.0,
+        "context_precision": 0.6666666666666666,
+        "mrr": 1.0,
+        "hit_rate": true
+      },
+      "notes": [
+        "refusals not reported: answered_rate skipped",
+        "citations not reported: grounding skipped"
+      ],
+      "error": null
+    },
+    {
+      "id": "q09",
+      "expected": "answer",
+      "tags": [],
+      "source_doc_ids": [
+        "tsi-ccs"
+      ],
+      "refused": null,
+      "cited_docs": [],
+      "metrics": {
+        "precision_at_k": 0.125,
+        "recall_at_k": 1.0,
+        "context_precision": 1.0,
+        "mrr": 1.0,
+        "hit_rate": true
+      },
+      "notes": [
+        "refusals not reported: answered_rate skipped",
+        "citations not reported: grounding skipped"
+      ],
+      "error": null
+    },
+    {
+      "id": "q10",
+      "expected": "answer",
+      "tags": [],
+      "source_doc_ids": [
+        "tsi-ope"
+      ],
+      "refused": null,
+      "cited_docs": [],
+      "metrics": {
+        "precision_at_k": 0.375,
+        "recall_at_k": 1.0,
+        "context_precision": 0.5555555555555555,
+        "mrr": 0.5,
+        "hit_rate": true
+      },
+      "notes": [
+        "refusals not reported: answered_rate skipped",
+        "citations not reported: grounding skipped"
+      ],
+      "error": null
+    },
+    {
+      "id": "q11",
+      "expected": "answer",
+      "tags": [],
+      "source_doc_ids": [
+        "tsi-ope"
+      ],
+      "refused": null,
+      "cited_docs": [],
+      "metrics": {
+        "precision_at_k": 0.125,
+        "recall_at_k": 1.0,
+        "context_precision": 1.0,
+        "mrr": 1.0,
+        "hit_rate": true
+      },
+      "notes": [
+        "refusals not reported: answered_rate skipped",
+        "citations not reported: grounding skipped"
+      ],
+      "error": null
+    },
+    {
+      "id": "q12",
+      "expected": "answer",
+      "tags": [],
+      "source_doc_ids": [
+        "iop-directive"
+      ],
+      "refused": null,
+      "cited_docs": [],
+      "metrics": {
+        "precision_at_k": 0.25,
+        "recall_at_k": 1.0,
+        "context_precision": 0.5833333333333333,
+        "mrr": 0.5,
+        "hit_rate": true
+      },
+      "notes": [
+        "refusals not reported: answered_rate skipped",
+        "citations not reported: grounding skipped"
+      ],
+      "error": null
+    },
+    {
+      "id": "q13",
+      "expected": "answer",
+      "tags": [],
+      "source_doc_ids": [
+        "iop-directive"
+      ],
+      "refused": null,
+      "cited_docs": [],
+      "metrics": {
+        "precision_at_k": 0.125,
+        "recall_at_k": 1.0,
+        "context_precision": 0.16666666666666666,
+        "mrr": 0.16666666666666666,
+        "hit_rate": true
+      },
+      "notes": [
+        "refusals not reported: answered_rate skipped",
+        "citations not reported: grounding skipped"
+      ],
+      "error": null
+    },
+    {
+      "id": "q14",
+      "expected": "answer",
+      "tags": [
+        "wrong-document"
+      ],
+      "source_doc_ids": [
+        "tsi-srt"
+      ],
+      "refused": null,
+      "cited_docs": [],
+      "metrics": {
+        "precision_at_k": 0.125,
+        "recall_at_k": 1.0,
+        "context_precision": 0.5,
+        "mrr": 0.5,
+        "hit_rate": true
+      },
+      "notes": [
+        "refusals not reported: answered_rate skipped",
+        "citations not reported: grounding skipped"
+      ],
+      "error": null
+    },
+    {
+      "id": "q15",
+      "expected": "answer",
+      "tags": [
+        "wrong-document"
+      ],
+      "source_doc_ids": [
+        "iop-directive"
+      ],
+      "refused": null,
+      "cited_docs": [],
+      "metrics": {
+        "precision_at_k": 0.125,
+        "recall_at_k": 1.0,
+        "context_precision": 1.0,
+        "mrr": 1.0,
+        "hit_rate": true
+      },
+      "notes": [
+        "refusals not reported: answered_rate skipped",
+        "citations not reported: grounding skipped"
+      ],
+      "error": null
+    },
+    {
+      "id": "q16",
+      "expected": "answer",
+      "tags": [
+        "wrong-document"
+      ],
+      "source_doc_ids": [
+        "tsi-ope"
+      ],
+      "refused": null,
+      "cited_docs": [],
+      "metrics": {
+        "precision_at_k": 0.125,
+        "recall_at_k": 1.0,
+        "context_precision": 1.0,
+        "mrr": 1.0,
+        "hit_rate": true
+      },
+      "notes": [
+        "refusals not reported: answered_rate skipped",
+        "citations not reported: grounding skipped"
+      ],
+      "error": null
+    }
+  ]
+}
