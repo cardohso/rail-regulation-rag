@@ -8,3 +8,4 @@ out: results/retrieval-gate.json
 system:
   type: replay
   path: records.json
+  fields: {refused: null}   # retrieval only: no generation, so refusals are not reported

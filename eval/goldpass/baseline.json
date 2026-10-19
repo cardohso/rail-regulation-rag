@@ -1,8 +1,8 @@
 {
-  "goldpass_version": "0.1.0",
+  "goldpass_version": "0.2.0",
   "meta": {
     "system": "rail-rag retrieval (hybrid, k=8, BAAI/bge-small-en-v1.5) (replayed from records.json)",
-    "golden": "eval/goldpass/golden.jsonl",
+    "golden": "golden.jsonl",
     "n_items": 16,
     "k": null,
     "generator": {
@@ -11,8 +11,8 @@
     },
     "judge_free": true,
     "allow_same_family": false,
-    "commit": "1bbcd4c",
-    "timestamp": "2026-10-19T12:54:51Z"
+    "commit": "b71befc",
+    "timestamp": "2026-10-19T20:14:12Z"
   },
   "metrics": {
     "faithfulness": {
@@ -52,8 +52,8 @@
       "n": 0
     },
     "answered_rate": {
-      "value": 1.0,
-      "n": 16
+      "value": null,
+      "n": 0
     },
     "refusal_rate": {
       "value": null,
@@ -103,8 +103,8 @@
         "n": 0
       },
       "answered_rate": {
-        "value": 1.0,
-        "n": 3
+        "value": null,
+        "n": 0
       },
       "refusal_rate": {
         "value": null,
@@ -190,6 +190,7 @@
   ],
   "judges": [],
   "skipped": {
+    "refusals not reported: answered_rate skipped": 16,
     "citations not reported: grounding skipped": 16
   },
   "items": [
@@ -200,10 +201,9 @@
       "source_doc_ids": [
         "tsi-noi"
       ],
-      "refused": false,
+      "refused": null,
       "cited_docs": [],
       "metrics": {
-        "answered_rate": true,
         "precision_at_k": 0.125,
         "recall_at_k": 1.0,
         "context_precision": 1.0,
@@ -211,6 +211,7 @@
         "hit_rate": true
       },
       "notes": [
+        "refusals not reported: answered_rate skipped",
         "citations not reported: grounding skipped"
       ],
       "error": null
@@ -222,10 +223,9 @@
       "source_doc_ids": [
         "tsi-noi"
       ],
-      "refused": false,
+      "refused": null,
       "cited_docs": [],
       "metrics": {
-        "answered_rate": true,
         "precision_at_k": 0.125,
         "recall_at_k": 1.0,
         "context_precision": 1.0,
@@ -233,6 +233,7 @@
         "hit_rate": true
       },
       "notes": [
+        "refusals not reported: answered_rate skipped",
         "citations not reported: grounding skipped"
       ],
       "error": null
@@ -244,10 +245,9 @@
       "source_doc_ids": [
         "tsi-srt"
       ],
-      "refused": false,
+      "refused": null,
       "cited_docs": [],
       "metrics": {
-        "answered_rate": true,
         "precision_at_k": 0.125,
         "recall_at_k": 1.0,
         "context_precision": 1.0,
@@ -255,6 +255,7 @@
         "hit_rate": true
       },
       "notes": [
+        "refusals not reported: answered_rate skipped",
         "citations not reported: grounding skipped"
       ],
       "error": null
@@ -266,10 +267,9 @@
       "source_doc_ids": [
         "tsi-srt"
       ],
-      "refused": false,
+      "refused": null,
       "cited_docs": [],
       "metrics": {
-        "answered_rate": true,
         "precision_at_k": 0.125,
         "recall_at_k": 1.0,
         "context_precision": 1.0,
@@ -277,6 +277,7 @@
         "hit_rate": true
       },
       "notes": [
+        "refusals not reported: answered_rate skipped",
         "citations not reported: grounding skipped"
       ],
       "error": null
@@ -288,10 +289,9 @@
       "source_doc_ids": [
         "tsi-srt"
       ],
-      "refused": false,
+      "refused": null,
       "cited_docs": [],
       "metrics": {
-        "answered_rate": true,
         "precision_at_k": 0.25,
         "recall_at_k": 1.0,
         "context_precision": 0.75,
@@ -299,6 +299,7 @@
         "hit_rate": true
       },
       "notes": [
+        "refusals not reported: answered_rate skipped",
         "citations not reported: grounding skipped"
       ],
       "error": null
@@ -310,10 +311,9 @@
       "source_doc_ids": [
         "tsi-prm"
       ],
-      "refused": false,
+      "refused": null,
       "cited_docs": [],
       "metrics": {
-        "answered_rate": true,
         "precision_at_k": 0.125,
         "recall_at_k": 1.0,
         "context_precision": 0.5,
@@ -321,6 +321,7 @@
         "hit_rate": true
       },
       "notes": [
+        "refusals not reported: answered_rate skipped",
         "citations not reported: grounding skipped"
       ],
       "error": null
@@ -332,10 +333,9 @@
       "source_doc_ids": [
         "tsi-prm"
       ],
-      "refused": false,
+      "refused": null,
       "cited_docs": [],
       "metrics": {
-        "answered_rate": true,
         "precision_at_k": 0.125,
         "recall_at_k": 1.0,
         "context_precision": 1.0,
@@ -343,6 +343,7 @@
         "hit_rate": true
       },
       "notes": [
+        "refusals not reported: answered_rate skipped",
         "citations not reported: grounding skipped"
       ],
       "error": null
@@ -354,10 +355,9 @@
       "source_doc_ids": [
         "tsi-ene"
       ],
-      "refused": false,
+      "refused": null,
       "cited_docs": [],
       "metrics": {
-        "answered_rate": true,
         "precision_at_k": 0.25,
         "recall_at_k": 1.0,
         "context_precision": 0.6666666666666666,
@@ -365,6 +365,7 @@
         "hit_rate": true
       },
       "notes": [
+        "refusals not reported: answered_rate skipped",
         "citations not reported: grounding skipped"
       ],
       "error": null
@@ -376,10 +377,9 @@
       "source_doc_ids": [
         "tsi-ccs"
       ],
-      "refused": false,
+      "refused": null,
       "cited_docs": [],
       "metrics": {
-        "answered_rate": true,
         "precision_at_k": 0.125,
         "recall_at_k": 1.0,
         "context_precision": 1.0,
@@ -387,6 +387,7 @@
         "hit_rate": true
       },
       "notes": [
+        "refusals not reported: answered_rate skipped",
         "citations not reported: grounding skipped"
       ],
       "error": null
@@ -398,10 +399,9 @@
       "source_doc_ids": [
         "tsi-ope"
       ],
-      "refused": false,
+      "refused": null,
       "cited_docs": [],
       "metrics": {
-        "answered_rate": true,
         "precision_at_k": 0.375,
         "recall_at_k": 1.0,
         "context_precision": 0.5555555555555555,
@@ -409,6 +409,7 @@
         "hit_rate": true
       },
       "notes": [
+        "refusals not reported: answered_rate skipped",
         "citations not reported: grounding skipped"
       ],
       "error": null
@@ -420,10 +421,9 @@
       "source_doc_ids": [
         "tsi-ope"
       ],
-      "refused": false,
+      "refused": null,
       "cited_docs": [],
       "metrics": {
-        "answered_rate": true,
         "precision_at_k": 0.125,
         "recall_at_k": 1.0,
         "context_precision": 1.0,
@@ -431,6 +431,7 @@
         "hit_rate": true
       },
       "notes": [
+        "refusals not reported: answered_rate skipped",
         "citations not reported: grounding skipped"
       ],
       "error": null
@@ -442,10 +443,9 @@
       "source_doc_ids": [
         "iop-directive"
       ],
-      "refused": false,
+      "refused": null,
       "cited_docs": [],
       "metrics": {
-        "answered_rate": true,
         "precision_at_k": 0.25,
         "recall_at_k": 1.0,
         "context_precision": 0.5833333333333333,
@@ -453,6 +453,7 @@
         "hit_rate": true
       },
       "notes": [
+        "refusals not reported: answered_rate skipped",
         "citations not reported: grounding skipped"
       ],
       "error": null
@@ -464,10 +465,9 @@
       "source_doc_ids": [
         "iop-directive"
       ],
-      "refused": false,
+      "refused": null,
       "cited_docs": [],
       "metrics": {
-        "answered_rate": true,
         "precision_at_k": 0.125,
         "recall_at_k": 1.0,
         "context_precision": 0.16666666666666666,
@@ -475,6 +475,7 @@
         "hit_rate": true
       },
       "notes": [
+        "refusals not reported: answered_rate skipped",
         "citations not reported: grounding skipped"
       ],
       "error": null
@@ -488,10 +489,9 @@
       "source_doc_ids": [
         "tsi-srt"
       ],
-      "refused": false,
+      "refused": null,
       "cited_docs": [],
       "metrics": {
-        "answered_rate": true,
         "precision_at_k": 0.125,
         "recall_at_k": 1.0,
         "context_precision": 0.5,
@@ -499,6 +499,7 @@
         "hit_rate": true
       },
       "notes": [
+        "refusals not reported: answered_rate skipped",
         "citations not reported: grounding skipped"
       ],
       "error": null
@@ -512,10 +513,9 @@
       "source_doc_ids": [
         "iop-directive"
       ],
-      "refused": false,
+      "refused": null,
       "cited_docs": [],
       "metrics": {
-        "answered_rate": true,
         "precision_at_k": 0.125,
         "recall_at_k": 1.0,
         "context_precision": 1.0,
@@ -523,6 +523,7 @@
         "hit_rate": true
       },
       "notes": [
+        "refusals not reported: answered_rate skipped",
         "citations not reported: grounding skipped"
       ],
       "error": null
@@ -536,10 +537,9 @@
       "source_doc_ids": [
         "tsi-ope"
       ],
-      "refused": false,
+      "refused": null,
       "cited_docs": [],
       "metrics": {
-        "answered_rate": true,
         "precision_at_k": 0.125,
         "recall_at_k": 1.0,
         "context_precision": 1.0,
@@ -547,79 +547,10 @@
         "hit_rate": true
       },
       "notes": [
+        "refusals not reported: answered_rate skipped",
         "citations not reported: grounding skipped"
       ],
       "error": null
     }
-  ],
-  "gate": {
-    "passed": true,
-    "failures": [],
-    "fragile": [],
-    "checks": [
-      {
-        "metric": "recall_at_k",
-        "scope": "all",
-        "value": 1.0,
-        "n": 16,
-        "rule": "≥ 0.8",
-        "ok": true,
-        "message": "ok",
-        "worst": [],
-        "ci": [
-          0.8064,
-          1.0
-        ],
-        "margin": 4,
-        "fragile": false
-      },
-      {
-        "metric": "hit_rate",
-        "scope": "all",
-        "value": 1.0,
-        "n": 16,
-        "rule": "≥ 0.85",
-        "ok": true,
-        "message": "ok",
-        "worst": [],
-        "ci": [
-          0.8064,
-          1.0
-        ],
-        "margin": 3,
-        "fragile": false
-      },
-      {
-        "metric": "errors",
-        "scope": "all",
-        "value": 0.0,
-        "n": 0,
-        "rule": "≤ 0",
-        "ok": true,
-        "message": "ok",
-        "worst": [],
-        "ci": null,
-        "margin": 1,
-        "fragile": false
-      },
-      {
-        "metric": "hit_rate",
-        "scope": "tag:wrong-document",
-        "value": 1.0,
-        "n": 3,
-        "rule": "≥ 0.66",
-        "ok": true,
-        "message": "ok",
-        "worst": [],
-        "ci": [
-          0.4385,
-          1.0
-        ],
-        "margin": 2,
-        "fragile": false
-      }
-    ],
-    "baseline": null,
-    "baseline_missing": "eval/goldpass/baseline.json"
-  }
+  ]
 }

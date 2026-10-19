@@ -1,7 +1,8 @@
 # Thresholds for the retrieval-only gate (16 answerable questions, raw top-8 hits, no LLM).
 #
-# Retrieval here is deterministic, so a drop is a real change, not sampling noise: there is no
-# `baseline.alpha`, and any single question that gets worse fails the baseline check.
+# Retrieval here is deterministic, so a drop is a real change, not sampling noise: the baseline
+# is marked `deterministic` (no p-values, no "could be noise" advice), and any single question
+# that gets worse fails the baseline check.
 #
 # Set from what retrieval must do for the pipeline to answer at all (the live eval gate's
 # context_recall floor is 0.70, measured after grading), with headroom below today's value.
@@ -14,3 +15,4 @@ tags:
     hit_rate:   {min: 0.66}
 baseline:
   max_drop: 0.0               # no regression against the committed baseline
+  deterministic: true         # reruns give identical answers
