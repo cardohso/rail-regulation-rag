@@ -64,6 +64,7 @@ class Pipeline:
                     "refused": bool(state.get("refused")),
                     "refusal_reason": state.get("refusal_reason"),
                     "citations": [h.passage.id for h in state.get("cited", [])],
+                    "dropped_sentences": state.get("dropped_sentences", 0),
                 }
             )
         return AskResult(

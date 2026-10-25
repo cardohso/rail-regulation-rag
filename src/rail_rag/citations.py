@@ -51,6 +51,37 @@ def renumber(answer: str, context: list[SearchHit]) -> tuple[str, list[SearchHit
     return text, [context[i - 1] for i in order]
 
 
+# Sentence ends, or line breaks: the units a citation must cover. Separators are kept so a
+# list stays a list after uncited lines are removed.
+_SPLIT = re.compile(r"((?<=[.!?])[ \t]+|[ \t]*\n\s*)")
+_MARKER_ONLY = re.compile(r"^(?:\[\d+\]\s*)+[.,;:]?$")
+
+
+def drop_uncited(answer: str) -> tuple[str, int]:
+    """Remove every sentence or line that carries no [n] marker.
+
+    renumber() only proves the answer cites something; this makes each sentence cite something,
+    so text the passages do not support cannot ride along with one cited sentence. A lone
+    marker ("... dB. [1]") belongs to the sentence before it. Returns the text and how many
+    sentences were dropped.
+    """
+    parts = _SPLIT.split(answer.strip())
+    units: list[list] = []  # [text, separator after it, cited]
+    for i in range(0, len(parts), 2):
+        text = parts[i].strip()
+        sep = parts[i + 1] if i + 1 < len(parts) else ""
+        if not text:
+            continue
+        if _MARKER_ONLY.match(text) and units:
+            units[-1][0] = f"{units[-1][0]} {text}"
+            units[-1][1], units[-1][2] = sep, True
+        else:
+            units.append([text, sep, bool(MARKER.search(text))])
+    kept = [u for u in units if u[2]]
+    text = "".join(t + (" " if "\n" not in sep and sep else sep) for t, sep, _ in kept).strip()
+    return text, len(units) - len(kept)
+
+
 def format_citations(cited: list[SearchHit]) -> list[Citation]:
     celex = _celex_by_doc()
     return [
