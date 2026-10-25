@@ -9,6 +9,8 @@ A question-answering assistant over EU railway interoperability law: the Interop
 **Live demo:** <https://rail-rag.calmcliff-0073b8b6.switzerlandnorth.azurecontainerapps.io>  
 **Demo video (90 s):** <https://youtu.be/CVuVkNnhasc>
 
+**Used by:** [rail-compliance-agent](https://github.com/cardohso/rail-compliance-agent), a tool-using agent that runs this assistant's retrieval as one of its tools to check a train design spec against the PRM TSI, and is evaluated on its tool use (it pins this repo at one commit).
+
 The demo scales to zero when idle, so the first request after a pause is slower: 6.7 s, measured once after 12 minutes idle (1.0 s once warm).
 
 **Stack:** Python 3.12 · LangGraph · FastAPI · Azure AI Search hybrid search, BM25 + vectors (with a local Qdrant fallback) · ONNX `bge-small-en-v1.5` embeddings · Gemini (generator) · `gpt-oss-120b` via Groq (judge) · RAGAS · Langfuse · Docker · Azure Container Apps · GitHub Actions. Runs on free tiers plus a few cents of Azure for Students credit: €0.18 in the first 3 days, mostly setup traffic. No paid plan or card is involved.
@@ -219,4 +221,5 @@ The dense-mode row rediscovers the finding above: without hybrid search, `q13`'s
 
 - [`docs/LESSONS.md`](docs/LESSONS.md): what went wrong while building this and how it was fixed. Examples: a parser that silently dropped 47% of a document, false refusals from JSON shape drift, and a judge false negative.
 - [`data/SOURCES.md`](data/SOURCES.md): sources, reuse terms and caveats. Source texts: EUR-Lex, © European Union, 1998–2026.
+- [`rail-compliance-agent`](https://github.com/cardohso/rail-compliance-agent): a follow-up project that builds a tool-using agent on this assistant's retrieval and evaluates how it uses its tools, not only its final text.
 - Built by João Pedro Cardoso. Licence: [MIT](LICENSE).
