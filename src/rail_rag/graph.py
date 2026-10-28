@@ -13,7 +13,7 @@ from typing import Literal, TypedDict
 from langgraph.graph import END, START, StateGraph
 
 from rail_rag import prompts
-from rail_rag.citations import renumber
+from rail_rag.citations import drop_uncited, renumber
 from rail_rag.embeddings import Embedder
 from rail_rag.providers import LLM, parse_json
 from rail_rag.tracing import NoopTracer, TracedLLM, Tracer, summarize
@@ -41,6 +41,7 @@ class RAGState(TypedDict, total=False):
     cited: list[SearchHit]
     refused: bool
     refusal_reason: RefusalReason | None
+    dropped_sentences: int  # uncited sentences removed from the answer (see drop_uncited)
 
 
 # Langfuse observation type for each node, so the trace view shows what each step is.
@@ -127,9 +128,16 @@ def build_graph(
         if reply.get("insufficient") or not str(reply.get("answer", "")).strip():
             return {"refused": True, "refusal_reason": "insufficient_context", "cited": []}
         answer, cited = renumber(str(reply["answer"]), context)
-        if not cited:  # an answer we cannot ground in a passage is not returned
-            return {"refused": True, "refusal_reason": "no_citations", "cited": []}
-        return {"answer": answer, "cited": cited, "refused": False, "refusal_reason": None}
+        answer, dropped = drop_uncited(answer)  # every sentence must cite, not just one
+        if not cited or not answer:  # an answer we cannot ground in a passage is not returned
+            return {
+                "refused": True, "refusal_reason": "no_citations", "cited": [],
+                "dropped_sentences": dropped,
+            }  # fmt: skip
+        return {
+            "answer": answer, "cited": cited, "refused": False, "refusal_reason": None,
+            "dropped_sentences": dropped,
+        }  # fmt: skip
 
     def refuse(state: RAGState) -> RAGState:
         return {"answer": prompts.REFUSAL, "cited": []}
