@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     search_mode: Literal["dense", "hybrid"] = "hybrid"  # hybrid = BM25 + vectors, RRF-fused
     top_k: int = 8
     min_score: float = 0.60
+    # Drop retrieved passages that are not in the pinned official corpus (see integrity).
+    # Turn off only to test the generator against planted passages on a local copy.
+    corpus_pin: bool = True
 
     # Public demo protection (per process)
     rate_limit_per_minute: int = 5

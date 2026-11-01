@@ -9,6 +9,7 @@ from rail_rag.citations import Citation, format_citations
 from rail_rag.config import Settings
 from rail_rag.embeddings import Embedder, LocalEmbedder
 from rail_rag.graph import GraphConfig, build_graph
+from rail_rag.integrity import PinnedStore, load_pins
 from rail_rag.providers import LLM, make_llm
 from rail_rag.tracing import NoopTracer, Tracer, make_tracer
 from rail_rag.vectorstore import SearchHit, VectorStore, make_store
@@ -46,9 +47,10 @@ class Pipeline:
         llm = make_llm(s.generator_provider, s.api_key(s.generator_provider), s.generator_model)
         cfg = GraphConfig(k=s.top_k, min_score=s.min_score, hybrid=s.search_mode == "hybrid")
         embedder = LocalEmbedder(s.embedding_model)
-        return cls(
-            llm, embedder, make_store(s), cfg, store_name=s.vector_store, tracer=make_tracer(s)
-        )
+        store = make_store(s)
+        if s.corpus_pin:
+            store = PinnedStore(store, load_pins())
+        return cls(llm, embedder, store, cfg, store_name=s.vector_store, tracer=make_tracer(s))
 
     def ask(self, question: str, trace_id: str | None = None) -> AskResult:
         trace_id = trace_id or uuid.uuid4().hex  # 32 hex chars: a valid Langfuse/W3C trace id
@@ -83,6 +85,7 @@ class Pipeline:
             "passages": self.store.count(),
             "vector_store": self.store_name,
             "search_mode": "hybrid" if self.cfg.hybrid else "dense",
+            "corpus_pin": isinstance(self.store, PinnedStore),
             "generator": self.llm.name,
             "tracing": self.tracer.enabled,
         }
